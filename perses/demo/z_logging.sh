@@ -673,6 +673,7 @@ spec:
     logsLimit: 50
     timeout: 30s
     schema: select
+    showTimezoneSelector: true
 EOF
 
 echo "Wait for Logging UIPlugin Available and console plugin workload in ${COO_NS}"
