@@ -9,21 +9,21 @@
 ## Foundation
 
 ### Project Setup
-- [ ] **Initialize Go module**
-  - [ ] Create `go.mod` with module name `github.com/YOUR_ORG/development-tools`
-  - [ ] Set Go version to 1.22 or later
+- [x] **Initialize Go module**
+  - [x] Create `go.mod` with module name `github.com/observability-ui/development-tools`
+  - [x] Set Go version to 1.22 or later (using 1.26.0)
   - Blocked by: None
 
-- [ ] **Set up directory structure**
-  - [ ] Create `cmd/`, `pkg/`, `internal/` directories
-  - [ ] Create basic file structure per architecture diagram
+- [x] **Set up directory structure**
+  - [x] Create `cmd/`, `pkg/`, `internal/` directories
+  - [x] Create basic file structure per architecture diagram
   - Blocked by: Initialize Go module
 
-- [ ] **Add core dependencies**
-  - [ ] Add Cobra: `github.com/spf13/cobra`
-  - [ ] Add controller-runtime: `sigs.k8s.io/controller-runtime`
-  - [ ] Add Bubble Tea: `github.com/charmbracelet/bubbletea`
-  - [ ] Add OpenShift API: `github.com/openshift/api`
+- [x] **Add core dependencies**
+  - [x] Add Cobra: `github.com/spf13/cobra`
+  - [x] Add controller-runtime: `sigs.k8s.io/controller-runtime`
+  - [x] Add Bubble Tea: `github.com/charmbracelet/bubbletea`
+  - [x] Add OpenShift API: `github.com/openshift/api`
   - Blocked by: Initialize Go module
 
 ### Kubernetes Client
