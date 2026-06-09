@@ -1,8 +1,10 @@
 # Development Tools Repository: Go Migration Plan
 
+> **🤖 AI Agents**: Start with [CONTEXT.md](./CONTEXT.md) for quick orientation, then return here for detailed decisions reference.
+
 **Repository**: development-tools (OpenShift Observability UI Team)  
 **Date**: June 8, 2026  
-**Status**: Planning Phase  
+**Status**: Implementation Phase  
 **Purpose**: Comprehensive analysis and migration plan for converting the repository to Go
 
 ---
@@ -23,12 +25,13 @@ The development-tools repository has evolved into a critical toolset for the Ope
 **Proceed with Full Go Migration** using:
 - **CLI Tool Name**: `obstool` (observability tooling)
 - **CLI Framework**: Cobra (industry standard for Kubernetes tools)
-- **Client Library**: controller-runtime with abstraction layer
+- **Client Library**: controller-runtime directly (no abstraction layer)
 - **User Interaction**: Flags + TUI (CLI when all flags present, TUI when flags missing)
 - **Configuration**: Type-safe Go structs (no config files)
 - **Testing**: Minimal - unit tests only for critical code
 - **UI Library**: Bubble Tea for TUI
 - **Resource Definitions**: Go structs (no YAML templates)
+- **State Management**: Execution Context pattern (first param to functions)
 
 ---
 
@@ -100,28 +103,6 @@ This plan consists of two comprehensive documents (plus user notes):
 - Version detection and conditional imports
 - Forked vs upstream module decisions
 - Type conversion patterns
-
----
-
-### 3. User Notes & Decisions
-**File**: [`user-notes.md`](./user-notes.md)
-
-**Contents**:
-- Team feedback and decisions on key choices
-- Corrections to initial plan (e.g., ClusterLogForwarder ownership)
-- Architecture refinements based on team input
-- Specific implementation notes for:
-  - COO deployment methods consolidation
-  - Cleanup structure
-  - Storage provider pattern
-  - TUI vs CLI mode handling
-
-**Key Decisions**:
-- Tool name: `obstool`
-- Interaction: Flags + TUI (not prompts)
-- Testing: Minimal, unit tests only
-- No templates: Go structs only
-- Config: Type-safe Go variables
 
 ---
 
@@ -337,7 +318,6 @@ See **[TODO.md](./TODO.md)** for detailed implementation checklist with:
 |----------|---------|--------------|--------|
 | go-migration-plan.md | 1.1 | June 8, 2026 | Updated with decisions |
 | crd_go_modules_research.md | 1.1 | June 8, 2026 | Corrected ClusterLogForwarder |
-| user-notes.md | 1.0 | June 8, 2026 | Team feedback captured |
 | README.md (this file) | 1.1 | June 8, 2026 | Updated with decisions |
 
 ---
@@ -384,19 +364,13 @@ See **[TODO.md](./TODO.md)** for detailed implementation checklist with:
 │   ├── Connection requirements
 │   └── Code examples
 │
-├── 📄 crd_go_modules_research.md
-│   ├── 18 CRD types analyzed
-│   ├── Version-specific patterns
-│   ├── Module selection decision trees
-│   ├── Code examples
-│   ├── Compatibility matrix
-│   └── Corrected ClusterLogForwarder info
-│
-└── 📄 user-notes.md
-    ├── Team feedback on initial plan
-    ├── Corrections and refinements
-    ├── Architecture decisions
-    └── Implementation notes
+└──  📄 crd_go_modules_research.md
+    ├── 18 CRD types analyzed
+    ├── Version-specific patterns
+    ├── Module selection decision trees
+    ├── Code examples
+    ├── Compatibility matrix
+    └── Corrected ClusterLogForwarder info
 ```
 
 ---

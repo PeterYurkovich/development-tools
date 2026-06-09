@@ -1,8 +1,16 @@
 # obstool Implementation TODO
 
+> **🤖 AI Agents**: This is the task list. For project context and patterns, see [CONTEXT.md](./CONTEXT.md) first.
+
 **Status Legend**: `[ ]` Todo | `[~]` In Progress | `[x]` Complete
 
 **Note**: Timeline is not a constraint. Focus is on quality and maintainability.
+
+**How to Use This File**:
+- Mark tasks `[~]` when you start working on them (only one in progress at a time per section)
+- Mark tasks `[x]` when completed
+- Check "Blocked by" to understand dependencies
+- Subtasks can be worked in parallel if their parent task is in progress
 
 ---
 

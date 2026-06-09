@@ -1,8 +1,26 @@
 # Development Tools Repository Go Migration Plan
 
+> **🤖 AI Agents**: This document contains detailed architecture, patterns, and code examples. For quick context, see [CONTEXT.md](./CONTEXT.md) first.
+
 **Repository**: development-tools (OpenShift Observability UI Team)  
 **Date**: June 8, 2026  
-**Scope**: Convert from multi-technology stack (bash, make, just, js, yaml) to Go-based CLI
+**Scope**: Convert from multi-technology stack (bash, make, just, js, yaml) to Go-based CLI  
+**Purpose**: Detailed architecture reference and implementation patterns
+
+---
+
+## Quick Navigation for Agents
+
+**Looking for...**
+- Architecture diagram → [Section: Target Architecture (Proposed)](#target-architecture-proposed)
+- Execution Context pattern → [Section: Execution Context Pattern](#execution-context-pattern)
+- Directory structure → [Section: Target Architecture](#target-architecture-proposed)
+- CLI examples → [Section: User Interaction](#decision-points-for-team-consideration)
+- Version detection → [Section: Decision 3 - Version Detection](#decision-points-for-team-consideration)
+- Mode detection (CLI vs TUI) → [Section: Decision 2 - User Interaction](#decision-points-for-team-consideration)
+- Resource structure → [Key Architecture Changes](#key-architecture-changes)
+- COO deployment methods → Architecture diagram, `deploy/coo.go` section
+- Testing approach → [Section: Decision 6 - Testing Strategy](#decision-points-for-team-consideration)
 
 ---
 

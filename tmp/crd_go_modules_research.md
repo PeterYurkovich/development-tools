@@ -1,6 +1,31 @@
 # Go Modules Research for Kubernetes CRDs
 
+> **🤖 AI Agents**: Reference guide for CRD Go modules and version compatibility. Check [CONTEXT.md](./CONTEXT.md) for project overview first.
+
 Based on the pattern from `rhobs/observability-operator` PR #1100, this document identifies Go modules needed for working with various Kubernetes CRDs commonly used in observability stacks.
+
+**Purpose**: Version-specific module selection guide for 18 CRD types used in obstool
+
+---
+
+## Quick CRD Lookup
+
+**Observability CRDs**:
+- UIPlugin → `github.com/openshift/api/console/v1` (or rhobs fork for 4.17-4.18)
+- LokiStack → `github.com/grafana/loki/operator/apis/loki/v1`
+- TempoStack → `github.com/grafana/tempo-operator/apis/tempo/v1alpha1`
+- PersesDashboard → `github.com/perses/perses-operator/api/v1alpha1`
+- ClusterLogForwarder → `github.com/openshift/cluster-logging-operator/apis/observability/v1` ⚠️
+
+**OpenShift Core**:
+- Route → `github.com/openshift/api/route/v1`
+- OAuth → `github.com/openshift/api/config/v1`
+- ClusterVersion → `github.com/openshift/api/config/v1`
+
+**OLM**:
+- Subscription → `github.com/operator-framework/api/pkg/operators/v1alpha1`
+
+---
 
 ## Executive Summary
 
