@@ -48,10 +48,10 @@
   - Note: Operator CRD schemes (Loki, Tempo, etc.) will be registered in their respective `pkg/resources/*.go` files
 
 ### Execution Context
-- [ ] **Create execution context package**
-  - [ ] Create `pkg/context/context.go`
-  - [ ] Implement `ExecutionContext` struct with Context, Client, IsTUI fields
-  - [ ] Implement `NewExecutionContext()` constructor
+- [x] **Create execution context package**
+  - [x] Create `pkg/context/context.go`
+  - [x] Implement context.WithValue pattern for Client and IsTUI
+  - [x] Implement helper functions: WithClient, GetClient, WithTUI, IsTUI
   - Blocked by: Implement k8s client package
 
 ### Configuration

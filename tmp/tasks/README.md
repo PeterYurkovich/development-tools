@@ -59,6 +59,7 @@ Task folder names should:
 ## Completed Tasks
 
 - ✅ **k8s-client-package**: Kubernetes client implementation with kubeconfig loading and scheme registration
+- ✅ **execution-context**: Execution context package for passing shared state through commands
 
 ## In Progress
 
@@ -66,7 +67,7 @@ Task folder names should:
 
 ## Planned
 
-- Execution context package
+- Configuration package
 - Root command
 - TUI framework
 - And more per TODO.md
