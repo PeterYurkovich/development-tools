@@ -53,7 +53,6 @@ Task folder names should:
 
 **Examples**:
 - `k8s-client-package` - Implement k8s client package
-- `version-detection` - Implement version detection
 - `execution-context` - Create execution context package
 - `root-command` - Implement root command
 
@@ -67,7 +66,6 @@ Task folder names should:
 
 ## Planned
 
-- Version detection
 - Execution context package
 - Root command
 - TUI framework

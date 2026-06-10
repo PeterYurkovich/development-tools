@@ -47,25 +47,12 @@
   - Blocked by: Add core dependencies
   - Note: Operator CRD schemes (Loki, Tempo, etc.) will be registered in their respective `pkg/resources/*.go` files
 
-### Version Detection
-- [ ] **Implement version detection**
-  - [ ] Create `internal/version/version.go`
-  - [ ] Implement `VersionInfo` struct
-  - [ ] Implement `Detect()` function to get ClusterVersion
-  - Blocked by: Implement k8s client package
-
-  - [ ] **Implement version comparison**
-    - [ ] Create `internal/version/compare.go`
-    - [ ] Implement semver comparison helpers
-    - [ ] Add `IsOCP419OrNewer()`, `IsOCP417To418()` helpers
-    - Blocked by: Implement version detection
-
 ### Execution Context
 - [ ] **Create execution context package**
   - [ ] Create `pkg/context/context.go`
-  - [ ] Implement `ExecutionContext` struct with Context, Client, Version, IsTUI fields
+  - [ ] Implement `ExecutionContext` struct with Context, Client, IsTUI fields
   - [ ] Implement `NewExecutionContext()` constructor
-  - Blocked by: Implement version detection
+  - Blocked by: Implement k8s client package
 
 ### Configuration
 - [ ] **Create config package**
@@ -86,7 +73,6 @@
   - [ ] **Implement version command**
     - [ ] Create `cmd/version.go`
     - [ ] Display obstool version
-    - [ ] Display cluster version when connected
     - Blocked by: Implement root command
 
 ### TUI Framework
@@ -457,11 +443,6 @@
 ## Testing (Minimal)
 
 ### Critical Unit Tests
-- [ ] **Test version comparison**
-  - [ ] Create `internal/version/compare_test.go`
-  - [ ] Test semver comparison logic
-  - Blocked by: Implement version comparison
-
 - [ ] **Test kubeconfig loading**
   - [ ] Create `pkg/k8s/connection_test.go`
   - [ ] Test priority: flag > env > default
@@ -481,7 +462,7 @@
   - [ ] Usage examples
   - [ ] Installation instructions
   - [ ] Link to migration plan
-  - Blocked by: Implement root command, Implement version command
+  - Blocked by: Implement root command
 
 - [ ] **Add command help text**
   - [ ] Ensure all commands have Short and Long descriptions
