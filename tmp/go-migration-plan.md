@@ -226,6 +226,46 @@ func deployLogging(execCtx *ExecutionContext, cfg LoggingConfig) error {
 
 ---
 
+## Code Style Standards
+
+**Comments**:
+- Minimal to none - prefer self-documenting code
+- Only add comments for non-obvious business logic or complex algorithms
+- No package/function documentation comments unless exported and truly necessary
+- Exception: Complex algorithms or non-obvious business rules may warrant explanation
+
+**Variable Naming**:
+- No 1-2 letter variable names except standard Go idioms
+- ✅ Acceptable short names: `err`, `ctx`, `ok`
+- ❌ Avoid: `c`, `e`, `i`, `j`, `k`, `x`, `y`, `s`, `r`
+- Use descriptive names: `client`, `config`, `namespace`, `index`, `count`, `result`
+
+**Example - Good**:
+```go
+func NewClient(ctx context.Context, kubeconfigPath string) (*Client, error) {
+    config, err := getKubeConfig(kubeconfigPath)
+    if err != nil {
+        return nil, fmt.Errorf("failed to load kubeconfig: %w", err)
+    }
+    return &Client{config: config}, nil
+}
+```
+
+**Example - Avoid**:
+```go
+// NewClient creates a new client (unnecessary comment)
+func NewClient(c context.Context, p string) (*Client, error) {
+    // Get config (obvious from code)
+    cfg, e := getKubeConfig(p)
+    if e != nil {
+        return nil, fmt.Errorf("failed to load kubeconfig: %w", e)
+    }
+    return &Client{config: cfg}, nil
+}
+```
+
+---
+
 ## Decision Points for Team Consideration
 
 ### 1. CLI Framework Choice

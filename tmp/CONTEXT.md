@@ -53,6 +53,10 @@
 - Timeline: **Not a constraint** (quality over speed)
 - Migration: **Parallel run** (bash scripts continue until Go version ready)
 
+**Code Style**
+- Comments: **Minimal to none** (prefer self-documenting code)
+- Variables: **No 1-2 letter names** (use descriptive names: `err`, `ctx`, `client` OK; `c`, `e`, `i` not OK)
+
 **Constraints**
 - No `obstool demo` command (workflows via command composition)
 - `cleanup all` only available in flag mode (requires all flags)
@@ -152,6 +156,19 @@ burst := 100
 
 ## Common Implementation Patterns
 
+### Code Style Guidelines
+
+**Comments**:
+- Minimal to none - code should be self-documenting
+- Only add comments for non-obvious business logic or complex algorithms
+- No package/function documentation comments unless exported and truly necessary
+
+**Variable Naming**:
+- No 1-2 letter variable names (except standard Go idioms)
+- ✅ Acceptable: `err`, `ctx`, `ok`
+- ❌ Avoid: `c`, `e`, `i`, `j`, `k`, `x`, `y`
+- Use descriptive names: `client`, `config`, `namespace`, `index`, `count`
+
 ### Adding a New Command
 
 1. **Create command file**: `cmd/{category}/{command}.go`
@@ -229,7 +246,10 @@ obstool users rbac --scenario=X     # Apply RBAC scenario
 - **Update TODO.md**: Mark tasks as `[~]` in progress, `[x]` when complete
 - **Follow patterns**: Use ExecutionContext, flat resources structure, mode-aware logic
 - **Version awareness**: Check OCP version for version-specific CRDs
-- **No premature abstraction**: Use controller-runtime directly, can refactor later
+- **Code style**: Minimal comments, no 1-2 letter variable names (except standard Go conventions: `err`, `ctx`)
+- **Plan then implement**: Create a task folder under `./tmp/tasks/{task-name}/` with:
+  - `plan.md` - Detailed implementation plan (request approval before starting)
+  - `implementation.md` - Summary of what was implemented (after completion)
 
 ### When Blocked
 
@@ -263,5 +283,11 @@ If you encounter ambiguity:
 
 ---
 
-**Last Updated**: 2026-06-09  
-**Document Version**: 1.0
+### For Task Planning & Implementation
+→ **[tasks/](./tasks/)** - Task-specific folders containing plan.md and implementation.md
+  - Example: `tasks/k8s-client-package/` contains plan and implementation docs
+
+---
+
+**Last Updated**: 2026-06-10  
+**Document Version**: 1.2 (added code style guidelines)

@@ -35,17 +35,17 @@
   - Blocked by: Initialize Go module
 
 ### Kubernetes Client
-- [ ] **Implement k8s client package**
-  - [ ] Create `pkg/k8s/client.go` with Client struct
-  - [ ] Implement `NewClient()` function with kubeconfig loading
-  - [ ] Configure timeout, QPS, burst settings
+- [x] **Implement k8s client package**
+  - [x] Create `pkg/k8s/client.go` with Client struct
+  - [x] Implement `NewClient()` function with kubeconfig loading
+  - [x] Configure timeout, QPS, burst settings
+  - [x] Create `pkg/k8s/scheme.go` with core scheme registration
+  - [x] Register core Kubernetes types (Pod, Service, Deployment, etc.)
+  - [x] Register OpenShift types (ClusterVersion, Route, Console)
+  - [x] Register OLM types (Subscription, CSV, CatalogSource)
+  - [x] Add `github.com/operator-framework/api` dependency
   - Blocked by: Add core dependencies
-
-  - [ ] **Implement scheme registration**
-    - [ ] Register core k8s types
-    - [ ] Register OpenShift types
-    - [ ] Register operator types (OLM, Loki, Tempo, etc.)
-    - Blocked by: Implement k8s client package
+  - Note: Operator CRD schemes (Loki, Tempo, etc.) will be registered in their respective `pkg/resources/*.go` files
 
 ### Version Detection
 - [ ] **Implement version detection**
@@ -491,7 +491,7 @@
 - [ ] **Add contribution guide**
   - [ ] How to add new commands
   - [ ] How to add new resources
-  - [ ] Coding conventions
+  - [ ] Coding conventions (minimal comments, no 1-2 letter variables)
   - Blocked by: Create main README for obstool
 
 ---
