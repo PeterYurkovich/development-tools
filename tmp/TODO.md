@@ -63,16 +63,16 @@
   - Blocked by: Set up directory structure
 
 ### Root Command
-- [ ] **Implement root command**
-  - [ ] Create `cmd/root.go`
-  - [ ] Set up Cobra root command with global flags
-  - [ ] Add `--kubeconfig` flag
-  - [ ] Implement execution context creation in PersistentPreRun
+- [x] **Implement root command**
+  - [x] Create `cmd/root.go`
+  - [x] Set up Cobra root command with global flags
+  - [x] Add `--kubeconfig` flag
+  - [x] Implement execution context creation in PersistentPreRun
   - Blocked by: Add core dependencies, Create execution context package
 
-  - [ ] **Implement version command**
-    - [ ] Create `cmd/version.go`
-    - [ ] Display obstool version
+  - [x] **Implement version command**
+    - [x] Create `cmd/version.go`
+    - [x] Display obstool version
     - Blocked by: Implement root command
 
 ### TUI Framework
