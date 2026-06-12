@@ -102,22 +102,20 @@ obstool (main binary)
 │   │   ├── monitoring.go      # Deploy monitoring plugin
 │   │   ├── acm.go             # Deploy ACM observability
 │   │   └── korrel8r.go        # Deploy korrel8r
-│   ├── upgrade/
-│   │   └── coo.go             # Upgrade COO in place
 │   ├── users/
 │   │   ├── users.go           # User management group
 │   │   ├── create.go          # Create test users
 │   │   └── rbac.go            # Apply RBAC
-│   ├── monitoring/
-│   │   ├── monitoring.go      # Monitoring management
-│   │   ├── scale.go           # Scale CMO
-│   │   └── update.go          # Update plugin image
+│   ├── update/
+│   │   ├── update.go          # Update command group
+│   │   ├── monitoring.go      # Scale up monitoring components
+│   │   └── coo.go             # Update COO in place
 │   └── cleanup/
 │       ├── cleanup.go         # Cleanup command group
+│       ├── monitoring.go      # Scale down monitoring components
 │       ├── coo.go             # Cleanup COO
 │       ├── logging.go         # Cleanup logging stack
 │       ├── tracing.go         # Cleanup tracing stack
-│       ├── monitoring.go      # Cleanup monitoring
 │       ├── acm.go             # Cleanup ACM
 │       └── all.go             # Cleanup all components (flag mode only)
 ├── pkg/
@@ -149,7 +147,7 @@ obstool (main binary)
 │   │   │   ├── fbc.go         # FBC deployment
 │   │   │   ├── stage.go       # Stage registry deployment
 │   │   │   ├── operatorhub.go # OperatorHub deployment
-│   │   │   └── upgrade.go     # In-place upgrade
+│   │   │   └── update.go      # In-place update
 │   │   └── bundle.go          # Generic bundle operations
 │   ├── users/
 │   │   ├── htpasswd.go        # htpasswd management
@@ -173,7 +171,7 @@ obstool (main binary)
 **Key Architecture Changes**:
 1. **No `qe/` directory** - COO deployment methods consolidated in `deploy/coo.go` and `operators/coo/`
 2. **No `demo/` directory** - Demo workflows handled by combining existing commands
-3. **Added `upgrade/` directory** - For COO in-place upgrades
+3. **Added `update/` directory** - For COO in-place updates and scaling up components
 4. **Cleanup mirrors deploy** - Same structure with cleanup commands
 5. **TUI package** - Using Bubble Tea for interactive mode
 6. **No templates directory** - All resources defined as Go structs

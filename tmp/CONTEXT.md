@@ -126,9 +126,8 @@ obstool/
 │   ├── root.go              # Root command + global flags
 │   ├── version.go           # Version command
 │   ├── deploy/              # Deploy commands
-│   ├── cleanup/             # Cleanup commands (mirrors deploy)
-│   ├── upgrade/             # Upgrade commands
-│   ├── monitoring/          # Monitoring operations
+│   ├── cleanup/             # Cleanup commands (scale down, remove resources)
+│   ├── update/              # Update commands (scale up, update versions)
 │   └── users/               # User management
 ├── pkg/
 │   ├── context/             # ExecutionContext definition
@@ -213,9 +212,9 @@ obstool deploy logging              # Deploy logging stack
 obstool deploy tracing              # Deploy tracing stack
 obstool cleanup <component>         # Cleanup component
 obstool cleanup all --confirm=yes   # Cleanup all (flag mode only)
-obstool upgrade coo --to-version=X  # Upgrade COO
-obstool monitoring scale up|down    # Scale monitoring
-obstool monitoring update-image     # Update monitoring plugin image
+obstool update monitoring --image=X # Scale down CMO, update plugin image
+obstool cleanup monitoring          # Scale up CMO (restores plugin)
+obstool update coo --to-version=X   # Update COO
 obstool users create --count=6      # Create test users
 obstool users rbac --scenario=X     # Apply RBAC scenario
 ```

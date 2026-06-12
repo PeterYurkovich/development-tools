@@ -1,3 +1,6 @@
 colorize/node_modules
 colorize/bin
 .DS_Store
+
+# obstool binary
+obstool

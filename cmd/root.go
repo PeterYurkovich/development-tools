@@ -5,6 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/observability-ui/development-tools/cmd/cleanup"
+	"github.com/observability-ui/development-tools/cmd/update"
 	execctx "github.com/observability-ui/development-tools/pkg/context"
 	"github.com/observability-ui/development-tools/pkg/k8s"
 )
@@ -21,6 +23,9 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().String("kubeconfig", "", "Path to kubeconfig file (defaults to $KUBECONFIG or ~/.kube/config)")
+
+	rootCmd.AddCommand(update.UpdateCmd)
+	rootCmd.AddCommand(cleanup.CleanupCmd)
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if cmd.Name() == "version" {

@@ -110,32 +110,77 @@
 
 ---
 
-## Commands - Monitoring (High Priority)
+## Commands - Update/Cleanup (High Priority)
 
-### Monitoring Scale
-- [ ] **Implement monitoring scale command**
-  - [ ] Create `cmd/monitoring/monitoring.go` command group
-  - [ ] Create `cmd/monitoring/scale.go`
-  - [ ] Add `up` and `down` subcommands
+### Update Monitoring
+- [x] **Implement update monitoring command**
+  - [x] Create `cmd/update/update.go` command group
+  - [x] Create `cmd/update/monitoring.go`
+  - [x] Scale down CMO deployment to 0 (to allow plugin updates)
+  - [x] Add `--image` flag to update monitoring-plugin image
+  - [x] Update monitoring-plugin deployment image when flag provided
   - Blocked by: Implement root command
 
-  - [ ] **Implement scale down logic**
-    - [ ] Scale CMO deployment to 0
-    - [ ] Scale monitoring-plugin to 0
-    - [ ] Store original replica counts
-    - Blocked by: Implement monitoring scale command
+### Cleanup Monitoring
+- [x] **Implement cleanup monitoring command**
+  - [x] Create `cmd/cleanup/cleanup.go` command group
+  - [x] Create `cmd/cleanup/monitoring.go`
+  - [x] Scale up CMO deployment to 1 (CMO reconciles and restores plugin)
+  - Blocked by: Implement root command
 
-  - [ ] **Implement scale up logic**
-    - [ ] Restore CMO deployment replicas
-    - [ ] Restore monitoring-plugin replicas
-    - Blocked by: Implement monitoring scale command
+### Update COO
+- [ ] **Implement update coo command**
+  - [ ] Create `cmd/update/coo.go`
+  - [ ] Add `--to-version` flag
+  - [ ] Implement update logic similar to operator-sdk bundle-upgrade
+  - Blocked by: Implement deploy coo command
 
-### Monitoring Update Image
-- [ ] **Implement monitoring update-image command**
-  - [ ] Create `cmd/monitoring/update.go`
-  - [ ] Accept `--image` flag for new image
-  - [ ] Update monitoring-plugin deployment image
-  - Blocked by: Implement monitoring scale command
+  - [ ] **Implement COO update logic**
+    - [ ] Create `pkg/operators/coo/update.go`
+    - [ ] Update bundle or subscription
+    - [ ] Wait for new version to be installed
+    - Blocked by: Implement update coo command
+
+### Cleanup COO
+- [ ] **Implement cleanup coo command**
+  - [ ] Create `cmd/cleanup/coo.go`
+  - [ ] Delete COO Subscription
+  - [ ] Delete CSV
+  - [ ] Delete CatalogSource if created
+  - [ ] Delete IDMS if created
+  - Blocked by: Implement cleanup command group
+
+### Cleanup Logging
+- [ ] **Implement cleanup logging command**
+  - [ ] Create `cmd/cleanup/logging.go`
+  - [ ] Delete UIPlugin
+  - [ ] Delete ClusterLogForwarder
+  - [ ] Delete LokiStack
+  - [ ] Delete MinIO resources
+  - Blocked by: Implement cleanup command group
+
+### Cleanup Tracing
+- [ ] **Implement cleanup tracing command**
+  - [ ] Create `cmd/cleanup/tracing.go`
+  - [ ] Delete UIPlugin
+  - [ ] Delete OpenTelemetry Collectors
+  - [ ] Delete TempoStack
+  - [ ] Delete MinIO resources
+  - Blocked by: Implement cleanup command group
+
+### Cleanup ACM
+- [ ] **Implement cleanup acm command**
+  - [ ] Create `cmd/cleanup/acm.go`
+  - [ ] Delete MultiClusterObservability
+  - [ ] Delete MinIO resources
+  - Blocked by: Implement cleanup command group
+
+### Cleanup All
+- [ ] **Implement cleanup all command**
+  - [ ] Create `cmd/cleanup/all.go`
+  - [ ] Flag mode only (require `--confirm=yes`)
+  - [ ] Run all cleanup commands in reverse order
+  - Blocked by: All individual cleanup commands
 
 ---
 
@@ -334,79 +379,6 @@
   - [ ] Flag mode only (require all flags)
   - [ ] Deploy all components in sequence
   - Blocked by: All individual deploy commands
-
----
-
-## Commands - Upgrade
-
-### Upgrade COO
-- [ ] **Implement upgrade coo command**
-  - [ ] Create `cmd/upgrade/coo.go`
-  - [ ] Add `--to-version` flag
-  - [ ] Implement upgrade logic similar to operator-sdk bundle-upgrade
-  - Blocked by: Implement deploy coo command
-
-  - [ ] **Implement COO upgrade logic**
-    - [ ] Create `pkg/operators/coo/upgrade.go`
-    - [ ] Update bundle or subscription
-    - [ ] Wait for new version to be installed
-    - Blocked by: Implement upgrade coo command
-
----
-
-## Commands - Cleanup
-
-### Cleanup Command Group
-- [ ] **Implement cleanup command group**
-  - [ ] Create `cmd/cleanup/cleanup.go`
-  - Blocked by: Implement root command
-
-### Cleanup COO
-- [ ] **Implement cleanup coo command**
-  - [ ] Create `cmd/cleanup/coo.go`
-  - [ ] Delete COO Subscription
-  - [ ] Delete CSV
-  - [ ] Delete CatalogSource if created
-  - [ ] Delete IDMS if created
-  - Blocked by: Implement cleanup command group
-
-### Cleanup Logging
-- [ ] **Implement cleanup logging command**
-  - [ ] Create `cmd/cleanup/logging.go`
-  - [ ] Delete UIPlugin
-  - [ ] Delete ClusterLogForwarder
-  - [ ] Delete LokiStack
-  - [ ] Delete MinIO resources
-  - Blocked by: Implement cleanup command group
-
-### Cleanup Tracing
-- [ ] **Implement cleanup tracing command**
-  - [ ] Create `cmd/cleanup/tracing.go`
-  - [ ] Delete UIPlugin
-  - [ ] Delete OpenTelemetry Collectors
-  - [ ] Delete TempoStack
-  - [ ] Delete MinIO resources
-  - Blocked by: Implement cleanup command group
-
-### Cleanup Monitoring
-- [ ] **Implement cleanup monitoring command**
-  - [ ] Create `cmd/cleanup/monitoring.go`
-  - [ ] Delete Monitoring UIPlugin
-  - Blocked by: Implement cleanup command group
-
-### Cleanup ACM
-- [ ] **Implement cleanup acm command**
-  - [ ] Create `cmd/cleanup/acm.go`
-  - [ ] Delete MultiClusterObservability
-  - [ ] Delete MinIO resources
-  - Blocked by: Implement cleanup command group
-
-### Cleanup All
-- [ ] **Implement cleanup all command**
-  - [ ] Create `cmd/cleanup/all.go`
-  - [ ] Flag mode only (require `--confirm=yes`)
-  - [ ] Run all cleanup commands in reverse order
-  - Blocked by: All individual cleanup commands
 
 ---
 
