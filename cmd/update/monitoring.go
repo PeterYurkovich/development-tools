@@ -3,11 +3,15 @@ package update
 import (
 	"fmt"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
 	"github.com/observability-ui/development-tools/internal/constants"
 	execctx "github.com/observability-ui/development-tools/pkg/context"
 	"github.com/observability-ui/development-tools/pkg/k8s"
+	"github.com/observability-ui/development-tools/pkg/mode"
+	"github.com/observability-ui/development-tools/pkg/output"
+	"github.com/observability-ui/development-tools/pkg/tui"
 )
 
 var monitoringCmd = &cobra.Command{
@@ -23,26 +27,106 @@ func init() {
 }
 
 func runUpdateMonitoring(cmd *cobra.Command, args []string) error {
+	requiredFlags := []string{"image"}
+
+	useTUI, err := mode.DetermineMode(cmd, requiredFlags)
+	if err != nil {
+		return err
+	}
+
+	if useTUI {
+		return runUpdateMonitoringTUI(cmd)
+	}
+
+	return runUpdateMonitoringCLI(cmd)
+}
+
+func runUpdateMonitoringCLI(cmd *cobra.Command) error {
 	image, _ := cmd.Flags().GetString("image")
 	if image == "" {
 		return fmt.Errorf("--image flag is required")
 	}
 
 	ctx := cmd.Context()
+	ctx = execctx.WithTUI(ctx, false)
+
 	kubeClient, err := execctx.GetClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 0); err != nil {
-		return fmt.Errorf("failed to scale down CMO: %w", err)
-	}
-	fmt.Printf("Scaled down %s\n", constants.CMODeployment)
+	out := output.NewHandler(ctx)
 
-	if err := k8s.UpdateDeploymentImage(ctx, kubeClient, constants.PluginDeployment, constants.MonitoringNamespace, image); err != nil {
-		return fmt.Errorf("failed to update monitoring plugin image: %w", err)
+	out.Info(fmt.Sprintf("Updating monitoring plugin to image: %s", image))
+
+	out.Progress("Scaling down CMO...")
+	if err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 0); err != nil {
+		out.Error(fmt.Sprintf("Failed to scale down CMO: %v", err))
+		return err
 	}
-	fmt.Printf("Updated %s image to %s\n", constants.PluginDeployment, image)
+	out.Success(fmt.Sprintf("Scaled down %s", constants.CMODeployment))
+
+	out.Progress("Updating monitoring plugin image...")
+	if err := k8s.UpdateDeploymentImage(ctx, kubeClient, constants.PluginDeployment, constants.MonitoringNamespace, image); err != nil {
+		out.Error(fmt.Sprintf("Failed to update image: %v", err))
+		return err
+	}
+	out.Success(fmt.Sprintf("Updated %s image to %s", constants.PluginDeployment, image))
+
+	return nil
+}
+
+func runUpdateMonitoringTUI(cmd *cobra.Command) error {
+	ctx := cmd.Context()
+	ctx = execctx.WithTUI(ctx, true)
+
+	kubeClient, err := execctx.GetClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	image, _ := cmd.Flags().GetString("image")
+	if image == "" {
+		return fmt.Errorf("TUI input collection not yet implemented - please provide --image flag for now")
+	}
+
+	operations := []string{
+		fmt.Sprintf("Scale down %s", constants.CMODeployment),
+		fmt.Sprintf("Update %s image to %s", constants.PluginDeployment, image),
+	}
+
+	model := tui.NewProgressModel("Updating Monitoring Plugin", operations)
+	program := tea.NewProgram(model)
+
+	go func() {
+		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationInProgress})
+
+		err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 0)
+		if err != nil {
+			program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationFailed, Error: err})
+			return
+		}
+		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationComplete})
+
+		program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationInProgress})
+
+		err = k8s.UpdateDeploymentImage(ctx, kubeClient, constants.PluginDeployment, constants.MonitoringNamespace, image)
+		if err != nil {
+			program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationFailed, Error: err})
+			return
+		}
+		program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationComplete})
+	}()
+
+	finalModel, err := program.Run()
+	if err != nil {
+		return err
+	}
+
+	m := finalModel.(tui.ProgressModel)
+	if m.Error() != nil {
+		return m.Error()
+	}
 
 	return nil
 }
