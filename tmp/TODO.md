@@ -55,11 +55,11 @@
   - Blocked by: Implement k8s client package
 
 ### Configuration
-- [ ] **Create config package**
-  - [ ] Create `pkg/config/config.go`
-  - [ ] Define `Config` struct with default values
-  - [ ] Expose as package-level `Default` variable
-  - [ ] Define nested structs: `RegistryConfig`, `DemoConfig`
+- [x] **Create config package**
+  - [x] Create `pkg/config/config.go`
+  - [x] Define `Config` struct with default values
+  - [x] Expose as package-level `Default` variable
+  - [x] Define nested structs: `RegistryConfig`, `NamespaceConfig`, `OperatorConfig`, `UserConfig`, `TimeoutConfig`, `StorageConfig`
   - Blocked by: Set up directory structure
 
 ### Root Command
