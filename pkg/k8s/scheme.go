@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
@@ -31,6 +32,9 @@ func registerSchemes(scheme *runtime.Scheme) error {
 	}
 	if err := operatorsv1.AddToScheme(scheme); err != nil {
 		return fmt.Errorf("failed to register olm operators/v1 scheme: %w", err)
+	}
+	if err := rbacv1.AddToScheme(scheme); err != nil {
+		return fmt.Errorf("failed to register rbac/v1 scheme: %w", err)
 	}
 	return nil
 }

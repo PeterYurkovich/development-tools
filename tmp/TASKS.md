@@ -198,23 +198,32 @@
 ## Commands - Users (High Priority)
 
 ### Users Create
-- [ ] **Implement users create command**
-  - [ ] Create `cmd/users/users.go` command group
-  - [ ] Create `cmd/users/create.go`
-  - [ ] Add `--count` flag (default 6)
-  - [ ] Add `--password` flag (default "password")
-  - Blocked by: Implement root command
+- [x] **Implement users create command**
+  - [x] Create `cmd/users/users.go` command group
+  - [x] Create `cmd/users/create.go`
+  - [x] Add `--count` flag (default 6)
+  - [x] Add `--password` flag (default "password")
+  - [x] Add `--namespace` flag (default "openshift-monitoring")
+  - Blocked by: Implement root command ✅
+  - Implementation: [tasks/users-create/implementation.md](./tasks/users-create/implementation.md)
 
-  - [ ] **Implement htpasswd generation**
-    - [ ] Create `pkg/users/htpasswd.go`
-    - [ ] Generate htpasswd file with N users
-    - [ ] Create Secret in openshift-config namespace
-    - Blocked by: Implement users create command
+  - [x] **Implement htpasswd generation**
+    - [x] Create `pkg/users/htpasswd.go`
+    - [x] Generate htpasswd file with N users
+    - [x] Create Secret in openshift-config namespace
+    - Blocked by: Implement users create command ✅
 
-  - [ ] **Implement OAuth configuration**
-    - [ ] Create `pkg/users/oauth.go`
-    - [ ] Patch OAuth CR to add htpasswd identity provider
-    - Blocked by: Implement htpasswd generation
+  - [x] **Implement OAuth configuration**
+    - [x] Create `pkg/users/oauth.go`
+    - [x] Patch OAuth CR to add htpasswd identity provider
+    - Blocked by: Implement htpasswd generation ✅
+
+  - [x] **Implement RBAC configuration**
+    - [x] Create `pkg/users/rbac.go`
+    - [x] Apply varied RBAC to 6 users (per plan)
+    - [x] Create custom role for user6
+    - [x] Create 15 bindings (8 namespace + 7 cluster)
+    - Blocked by: Implement OAuth configuration ✅
 
 ### Users RBAC
 - [ ] **Implement users rbac command**
