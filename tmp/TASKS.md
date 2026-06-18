@@ -290,35 +290,61 @@
     - Blocked by: Implement deploy coo command ✅
 
 ### Deploy Logging
-- [ ] **Implement deploy logging command**
-  - [ ] Create `cmd/deploy/logging.go`
-  - [ ] Add `--data-model` flag (otel, viaq)
-  - [ ] Add `--namespace` flag
-  - [ ] Add `--skip-ui-plugin` flag
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy logging command (OperatorHub only - both operators)**
+  - [x] Create `cmd/deploy/logging.go`
+  - [x] Create `pkg/operations/logging.go`
+  - [x] Create `pkg/operators/logging/operatorhub.go`
+  - [x] Create `pkg/operators/loki/operatorhub.go`
+  - [x] Create `internal/constants/logging.go`
+  - [x] Add `--logging-channel` and `--loki-channel` flags
+  - [x] Installs **cluster-logging** operator in `openshift-logging` namespace
+  - [x] Installs **loki-operator** in `openshift-operators-redhat` namespace
+  - [x] CLI and TUI modes with proper executor pattern
+  - [x] Both operators from redhat-operators catalog
+  - [x] 8 deployment steps total (4 per operator)
 
-  - [ ] **Implement MinIO deployment for logging**
-    - [ ] Create `pkg/resources/minio.go`
-    - [ ] Create MinIO Deployment, Service, PVC, Secret
-    - [ ] Implement storage provider interface
-    - Blocked by: Implement deploy logging command
+- [ ] **Deploy logging signal generator (chat app)**
+  - [ ] Create `cmd/deploy/signals-logging.go` or add to logging.go
+  - [ ] Deploy chat namespace
+  - [ ] Deploy chat pod with log generation
+  - [ ] Container runs: `while true; do echo "$(date) chat says hello - $i"; i=$((i + 1)); sleep 1; done`
+  - [ ] Add security context (runAsNonRoot, drop ALL caps, seccomp RuntimeDefault)
+  - Blocked by: Deploy logging command
 
-  - [ ] **Implement LokiStack deployment**
-    - [ ] Create `pkg/resources/lokistack.go`
-    - [ ] Function to create LokiStack CR
-    - [ ] Configure with MinIO backend
-    - Blocked by: Implement MinIO deployment for logging
+- [x] **Implement MinIO deployment for logging**
+  - [x] Create `pkg/resources/minio.go`
+  - [x] Create `internal/constants/minio.go`
+  - [x] Create MinIO Deployment, Service, PVC, Secret
+  - [x] MinIO secret also created in openshift-logging namespace for LokiStack
+  - [x] Configurable StorageClassName
+  - [x] Functions: DeployMinIO, CreateMinIOSecret, CreateMinIOService, CreateMinIOPVC, CreateMinIODeployment
 
-  - [ ] **Implement ClusterLogForwarder deployment**
-    - [ ] Create `pkg/resources/clusterlogforwarder.go`
-    - [ ] Support OTEL and ViaQ data models
-    - [ ] Forward to LokiStack
-    - Blocked by: Implement LokiStack deployment
+- [x] **Implement LokiStack deployment**
+  - [x] Create `pkg/resources/lokistack.go`
+  - [x] Function to create LokiStack CR
+  - [x] Configure with MinIO S3 backend
+  - [x] Size: 1x.demo
+  - [x] Schema: v12 with effectiveDate 2022-06-01
+  - [x] Tenant mode: openshift-logging
 
-  - [ ] **Implement Logging UIPlugin deployment**
-    - [ ] Create `pkg/resources/uiplugin.go`
-    - [ ] Create UIPlugin CR for logging
-    - Blocked by: Implement ClusterLogForwarder deployment
+- [x] **Implement RBAC for logging collectors**
+  - [x] Create `pkg/resources/logging_rbac.go`
+  - [x] CreateServiceAccountWithRBAC helper
+  - [x] CreateLogCollectorRBAC (collect-application-logs, collect-infrastructure-logs, logging-collector-logs-writer, lokistack-tenant-logs)
+  - [x] CreateCollectorRBAC (logging-collector-logs-writer, collect-application-logs, collect-infrastructure-logs, collect-audit-logs)
+
+- [x] **Implement ClusterLogForwarder deployment**
+  - [x] Create `pkg/resources/clusterlogforwarder.go`
+  - [x] ClusterLogForwarder CR with lokiStack output type
+  - [x] ServiceAccount-based authentication
+  - [x] Pipelines for application and infrastructure logs
+  - [x] TLS with openshift-service-ca.crt ConfigMap
+
+- [x] **Implement Logging UIPlugin deployment**
+  - [x] Create `pkg/resources/uiplugin.go`
+  - [x] Create UIPlugin CR for logging
+  - [x] Configure with LokiStack reference
+  - [x] Settings: logsLimit=50, timeout=30s, schema=select, showTimezoneSelector=true
 
 ### Deploy Tracing
 - [ ] **Implement deploy tracing command**
@@ -327,21 +353,37 @@
   - [ ] Add `--namespace` flag
   - Blocked by: Implement deploy command group
 
-  - [ ] **Implement TempoStack deployment**
-    - [ ] Create `pkg/resources/tempostack.go`
-    - [ ] Function to create TempoStack CR
-    - [ ] Configure with MinIO backend
-    - Blocked by: Implement deploy tracing command
+- [ ] **Deploy tracing signal generators**
+  - [ ] Create `cmd/deploy/signals-tracing.go` or add to tracing.go
+  - [ ] Deploy hotrod application (tracing-app-hotrod namespace)
+    - [ ] Deployment with jaegertracing/example-hotrod:1.46 image
+    - [ ] Service exposing port 8080
+    - [ ] Route for external access
+    - [ ] Configure OTLP exporter to user-collector.openshift-tracing:4318
+  - [ ] Deploy k6-tracing (tracing-app-k6 namespace)
+    - [ ] Deployment with ghcr.io/grafana/xk6-client-tracing:v0.0.5
+    - [ ] Connect to user-collector.openshift-tracing:4317
+  - [ ] Deploy telemetrygen (tracing-app-telemetrygen namespace)
+    - [ ] Container 1: good_service (rate=3, child-spans=2)
+    - [ ] Container 2: faulty_service (rate=2, child-spans=1, status-code=Error)
+    - [ ] Both send to user-collector.openshift-tracing:4317
+  - Blocked by: Deploy tracing command
 
-  - [ ] **Implement OpenTelemetry Collector deployment**
-    - [ ] Create `pkg/resources/otel.go`
-    - [ ] Create platform and user collectors
-    - Blocked by: Implement TempoStack deployment
+- [ ] **Implement TempoStack deployment**
+  - [ ] Create `pkg/resources/tempostack.go`
+  - [ ] Function to create TempoStack CR
+  - [ ] Configure with MinIO backend
+  - Blocked by: Implement deploy tracing command
 
-  - [ ] **Implement Tracing UIPlugin deployment**
-    - [ ] Update `pkg/resources/uiplugin.go`
-    - [ ] Add UIPlugin CR for tracing
-    - Blocked by: Implement OpenTelemetry Collector deployment
+- [ ] **Implement OpenTelemetry Collector deployment**
+  - [ ] Create `pkg/resources/otel.go`
+  - [ ] Create platform and user collectors
+  - Blocked by: Implement TempoStack deployment
+
+- [ ] **Implement Tracing UIPlugin deployment**
+  - [ ] Update `pkg/resources/uiplugin.go`
+  - [ ] Add UIPlugin CR for tracing
+  - Blocked by: Implement OpenTelemetry Collector deployment
 
 ### Deploy Dashboards
 - [ ] **Implement deploy dashboards command**
