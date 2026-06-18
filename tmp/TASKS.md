@@ -235,40 +235,50 @@
 ## Commands - Deploy
 
 ### Deploy Command Group
-- [ ] **Implement deploy command group**
-  - [ ] Create `cmd/deploy/deploy.go`
-  - [ ] When run without subcommand, show TUI selection
-  - Blocked by: Implement root command, Implement deploy selection TUI
+- [x] **Implement deploy command group**
+  - [x] Create `cmd/deploy/deploy.go`
+  - [x] When run without subcommand, show TUI selection
+  - [x] Initially shows only COO option (others add themselves when implemented)
+  - Blocked by: Implement root command ✅, Implement deploy selection TUI ✅
 
 ### Deploy COO
-- [ ] **Implement deploy coo command**
-  - [ ] Create `cmd/deploy/coo.go`
-  - [ ] Add `--method` flag (bundle, fbc, stage, operatorhub)
-  - [ ] Add method-specific flags
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy coo command**
+  - [x] Create `cmd/deploy/coo.go`
+  - [x] Add `--method` flag (bundle, fbc, stage, operatorhub)
+  - [x] Add method-specific flags
+  - [x] CLI and TUI modes both working
+  - [x] Bundle method uses operator-sdk via exec.Command
+  - [x] Scheduler patching DEFERRED (see Deferred Items below)
+  - [x] Perses namespace NOT created (left to dashboards deployment)
+  - Blocked by: Implement deploy command group ✅
 
-  - [ ] **Implement COO bundle deployment**
-    - [ ] Create `pkg/operators/coo/bundle.go`
-    - [ ] Use operator-sdk run bundle pattern
-    - [ ] Create IDMS if needed
-    - Blocked by: Implement deploy coo command
+  - [x] **Implement COO bundle deployment**
+    - [x] Create `pkg/operators/coo/bundle.go`
+    - [x] Check for operator-sdk binary
+    - [x] Use operator-sdk run bundle pattern
+    - [x] Create IDMS based on registry type (quay or stage)
+    - [x] Version-aware security context (OCP 4.19+)
+    - Blocked by: Implement deploy coo command ✅
 
-  - [ ] **Implement COO FBC deployment**
-    - [ ] Create `pkg/operators/coo/fbc.go`
-    - [ ] Create CatalogSource
-    - [ ] Create Subscription
-    - Blocked by: Implement deploy coo command
+  - [x] **Implement COO FBC deployment**
+    - [x] Create `pkg/operators/coo/fbc.go`
+    - [x] Create IDMS for quay
+    - [x] Create CatalogSource
+    - [x] Create Subscription
+    - Blocked by: Implement deploy coo command ✅
 
-  - [ ] **Implement COO stage deployment**
-    - [ ] Create `pkg/operators/coo/stage.go`
-    - [ ] Use stage registry
-    - [ ] Create CatalogSource for stage
-    - Blocked by: Implement deploy coo command
+  - [x] **Implement COO stage deployment**
+    - [x] Create `pkg/operators/coo/stage.go`
+    - [x] Use stage registry
+    - [x] Create stage IDMS with brew registry
+    - [x] Create CatalogSource for stage
+    - [x] Create Subscription
+    - Blocked by: Implement deploy coo command ✅
 
-  - [ ] **Implement COO operatorhub deployment**
-    - [ ] Create `pkg/operators/coo/operatorhub.go`
-    - [ ] Create Subscription to default catalog
-    - Blocked by: Implement deploy coo command
+  - [x] **Implement COO operatorhub deployment**
+    - [x] Create `pkg/operators/coo/operatorhub.go`
+    - [x] Create Subscription to default catalog (redhat-operators)
+    - Blocked by: Implement deploy coo command ✅
 
 ### Deploy Logging
 - [ ] **Implement deploy logging command**
@@ -466,6 +476,31 @@
   - [ ] Build for multiple platforms
   - [ ] Distribution method
   - Blocked by: Set up Makefile
+
+---
+
+## Deferred Items
+
+### Scheduler Patching
+- **Decision**: Removed from initial COO deployment implementation
+- **Reason**: Unclear if this should be:
+  - Part of COO deployment specifically
+  - Global cluster preparation step (separate command?)
+  - Optional via flag
+  - Part of all operator deployments
+- **Action Required**: Determine correct placement and implement
+- **Reference**: Bash scripts patch with `kubectl patch Scheduler cluster --type='json' -p '[{ "op": "replace", "path": "/spec/mastersSchedulable", "value": true }]'`
+- **Affects**: COO bundle deployment (and possibly others)
+- **Status**: [ ] Not implemented
+
+### Binary Dependencies Check
+- [ ] **Implement binary dependency checker**
+  - [ ] Create `cmd/doctor.go` command or similar
+  - [ ] Check for operator-sdk (required for bundle method)
+  - [ ] Check for oc/kubectl (general requirement)
+  - [ ] Provide installation instructions
+  - [ ] Blocked by: None (can implement anytime)
+  - [ ] Note: For current implementation, assume operator-sdk installed and error if not found
 
 ---
 

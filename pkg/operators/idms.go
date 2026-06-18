@@ -97,3 +97,81 @@ func ImageDigestMirrorSetExists(ctx context.Context, kubeClient client.Client, n
 
 	return true, nil
 }
+
+func EnsureIDMSQuay(ctx context.Context, kubeClient client.Client) error {
+	exists, err := ImageDigestMirrorSetExists(ctx, kubeClient, "idms-coo-quay")
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	return CreateImageDigestMirrorSet(ctx, kubeClient, IDMSConfig{
+		Name:   "idms-coo-quay",
+		Source: "registry.redhat.io/cluster-observability-operator",
+		Mirrors: []configv1.ImageMirror{
+			"quay.io/redhat-user-workloads/cluster-observabilit-tenant/cluster-observability-operator",
+		},
+	})
+}
+
+func EnsureIDMSStage(ctx context.Context, kubeClient client.Client) error {
+	exists, err := ImageDigestMirrorSetExists(ctx, kubeClient, "idms-coo-stage")
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	return CreateImageDigestMirrorSet(ctx, kubeClient, IDMSConfig{
+		Name:   "idms-coo-stage",
+		Source: "registry.redhat.io",
+		Mirrors: []configv1.ImageMirror{
+			"registry.stage.redhat.io",
+		},
+	})
+}
+
+func EnsureIDMSStageWithBrew(ctx context.Context, kubeClient client.Client) error {
+	exists, err := ImageDigestMirrorSetExists(ctx, kubeClient, "idms-coo-stage")
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	idms := &configv1.ImageDigestMirrorSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "idms-coo-stage",
+			Labels: map[string]string{
+				"obstool.observability.openshift.io/managed": "true",
+			},
+		},
+		Spec: configv1.ImageDigestMirrorSetSpec{
+			ImageDigestMirrors: []configv1.ImageDigestMirrors{
+				{
+					Source: "registry.redhat.io",
+					Mirrors: []configv1.ImageMirror{
+						"registry.stage.redhat.io",
+					},
+				},
+				{
+					Source: "registry-proxy.engineering.redhat.com/rh-osbs/iib",
+					Mirrors: []configv1.ImageMirror{
+						"brew.registry.redhat.io/rh-osbs/iib",
+					},
+				},
+			},
+		},
+	}
+
+	err = kubeClient.Create(ctx, idms)
+	if err != nil {
+		return fmt.Errorf("failed to create imagedigestmirrorset idms-coo-stage: %w", err)
+	}
+
+	return nil
+}
