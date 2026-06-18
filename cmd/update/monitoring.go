@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
 	"github.com/observability-ui/development-tools/internal/constants"
@@ -87,7 +88,10 @@ func runUpdateMonitoringTUI(cmd *cobra.Command) error {
 
 	image, _ := cmd.Flags().GetString("image")
 	if image == "" {
-		return fmt.Errorf("TUI input collection not yet implemented - please provide --image flag for now")
+		image, err = collectImageInput()
+		if err != nil {
+			return err
+		}
 	}
 
 	operations := []string{
@@ -129,4 +133,30 @@ func runUpdateMonitoringTUI(cmd *cobra.Command) error {
 	}
 
 	return nil
+}
+
+func collectImageInput() (string, error) {
+	var image string
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter monitoring plugin image").
+				Placeholder("quay.io/observability-ui/monitoring-plugin:latest").
+				Value(&image).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("image cannot be empty")
+					}
+					return nil
+				}),
+		),
+	)
+
+	err := form.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return image, nil
 }
