@@ -1,280 +1,281 @@
-# Development Tools Repository: Go Migration Plan
+# obstool - OpenShift Observability Development Tool
 
-> **🤖 AI Agents**: Start with [CONTEXT.md](./CONTEXT.md) for quick orientation, then return here for detailed decisions reference.
+**Single Go CLI replacing bash/make/just/yaml tooling for OCP observability development**
 
-**Repository**: development-tools (OpenShift Observability UI Team)  
-**Date**: June 8, 2026 (Updated: June 18, 2026)  
-**Status**: Implementation Phase - Foundation Complete, Commands In Progress  
-**Purpose**: Comprehensive analysis and migration plan for converting the repository to Go
+**Goal**: Migrate development-tools repository from multi-technology stack to unified Go CLI tool named `obstool`
 
----
-
-## Executive Summary
-
-The development-tools repository has evolved into a critical toolset for the OpenShift Observability UI team but has become fragmented across 6+ technologies. This plan proposes migrating to a unified Go-based CLI tool to improve maintainability, type safety, and team productivity.
-
-### Key Findings
-
-- **Current State**: 58 bash scripts, 78 YAML files, 2 Makefiles, 2 Justfiles, 3 TypeScript files
-- **Fragmentation Impact**: Multiple ways to do the same thing, inconsistent error handling, difficult to extend
-- **Team Alignment**: Team writes Go for operators, making Go the natural choice
-- **Migration Effort**: Estimated 16 weeks (4 months) for full migration
-
-### Decisions Made
-
-**Proceed with Full Go Migration** using:
-- **CLI Tool Name**: `obstool` (observability tooling)
-- **CLI Framework**: Cobra (industry standard for Kubernetes tools)
-- **Client Library**: controller-runtime directly (no abstraction layer)
-- **User Interaction**: Flags + TUI (CLI when all flags present, TUI when flags missing)
-- **Configuration**: Type-safe Go structs (no config files)
-- **Testing**: Minimal - unit tests only for critical code
-- **UI Library**: Bubble Tea for TUI
-- **Resource Definitions**: Go structs (no YAML templates)
-- **State Management**: Execution Context pattern (first param to functions)
+**Target Users**: OpenShift Observability UI team members working with OCP clusters
 
 ---
 
-## Documentation Structure
+## Current Status
 
-This plan consists of two comprehensive documents (plus user notes):
+### ✅ Completed
+- Architecture and design decisions finalized
+- Go module research completed (18 CRD types)
+- Migration plan documented
+- Foundation implementation (Go module, core packages, k8s client)
+- TUI framework (Bubble Tea + Huh components, mode detection)
+- Business logic decoupling (channel-based architecture)
+- First commands implemented (update/cleanup monitoring)
+- OLM utilities (subscription, catalogsource, CSV waiting, operatorgroup, IDMS)
+- Storage provider interface (MinIO abstraction for Loki/Tempo/ACM)
 
-### 1. Main Migration Plan
-**File**: [`go-migration-plan.md`](./go-migration-plan.md)
+### 🔄 In Progress
+- Deploy COO commands (bundle, fbc, stage, operatorhub)
 
-**Contents**:
-- Current state analysis with repository statistics
-- Target architecture (proposed CLI structure)
-- Decision points for team consideration
-- 10 key decisions with pros/cons/recommendations:
-  - CLI framework choice (Cobra vs alternatives)
-  - User interaction approach (CLI vs prompts vs TUI)
-  - Kubernetes client strategy
-  - Version detection & conditional logic
-  - Configuration management
-  - Error handling strategy
-  - Testing strategy
-  - Timeout & retry configuration
-  - Logging & output
-  - Embedded resources vs external files
-- 6-phase migration plan with timeline
-- Go modules required (with versions)
-- Connection requirements
-- Risk assessment
-- Success metrics
-- Next steps and questions for team discussion
-
-**Key Highlights**:
-- Detailed 16-week phased approach
-- Architecture diagrams in code form
-- Code examples for each decision
-- Specific Go module versions needed
-- Version detection pattern (from observability-operator PR #1100)
+### ⏸️ Not Started
+- Deploy commands (logging, tracing, dashboards, monitoring, ACM, korrel8r)
+- Users commands (create, rbac)
+- Additional cleanup commands (COO, logging, tracing, ACM, all)
+- Build & release (Makefile, completions, releases)
 
 ---
 
-### 2. Go Modules Research
-**File**: [`crd_go_modules_research.md`](./crd_go_modules_research.md)
+## Quick Start
 
-**Contents**:
-- Comprehensive research on Go modules for ALL Kubernetes CRDs used in the repository
-- 18 different CRD types analyzed:
-  - Observability CRDs (UIPlugin, LokiStack, TempoStack, etc.)
-  - OpenShift resources (OAuth, Route, Project, Console, etc.)
-  - OLM resources (Subscription, OperatorGroup, CatalogSource)
-- **Critical Pattern**: Version-specific module requirements
-  - Example: Console CRD requires different modules for OCP 4.17-4.18 vs 4.19+
-  - Detailed analysis of why (ContentSecurityPolicy field marshalling)
-- For each CRD:
-  - Go module import path
-  - Version-specific modules (if any)
-  - Compatibility notes
-  - Usage patterns
-  - Code examples
-- Decision trees for module selection
-- Common integration patterns
-- Troubleshooting guide
-- Version compatibility matrix
-- References to observability-operator implementation
+### For AI Agents
+1. **Read this file** (10 min) - Project overview, status, navigation, critical gotchas
+2. **Check [TASKS.md](./TASKS.md)** (2 min) - Find available work
+3. **Read [PATTERNS.md](./PATTERNS.md)** (10 min) - Learn required code patterns
+4. **Check [ARCHITECTURE.md](./ARCHITECTURE.md)** (optional) - Understand system design
+5. **Start implementing** - Follow executor pattern for all multi-step functions
 
-**Key Highlights**:
-- **957 lines** of detailed research
-- Real-world examples from production code
-- Version detection and conditional imports
-- Forked vs upstream module decisions
-- Type conversion patterns
+### For Developers
+1. Read this file - Project overview and status
+2. Review [ARCHITECTURE.md](./ARCHITECTURE.md) - Understand system design
+3. Check [TASKS.md](./TASKS.md) - Find what needs to be built
+4. Read [PATTERNS.md](./PATTERNS.md) - Code style and required patterns
+5. Use [REFERENCE.md](./REFERENCE.md) - Look up CRDs, commands, troubleshooting
+
+### For Stakeholders
+1. Read "Current Status" section above
+2. See [TASKS.md](./TASKS.md) for implementation progress
+3. Review [ARCHITECTURE.md](./ARCHITECTURE.md) for technical decisions
 
 ---
 
-## Quick Reference
+## Navigation Guide
 
-### Current Repository Stats
-
-| Metric | Count | Percentage |
-|--------|-------|------------|
-| Shell Scripts | 58 | 73% |
-| YAML Files | 78 | 17% |
-| Justfiles | 2 | 5% |
-| Makefiles | 2 | 3% |
-| TypeScript Files | 3 | 2% |
-| Go Files | 0 | 0% |
-
-### Migration Timeline
-
-| Phase | Duration | Deliverables |
-|-------|----------|--------------|
-| 1. Foundation | 2 weeks | Core framework, K8s client, version detection |
-| 2. Core Operations | 3 weeks | Monitoring, users, dashboards commands |
-| 3. Complex Deployments | 4 weeks | Logging, tracing, korrel8r stacks |
-| 4. QE & Advanced | 3 weeks | QE workflows, demo orchestration |
-| 5. Migration & Docs | 2 weeks | Documentation, team training |
-| 6. Refinement | 2 weeks | Polish, remove old scripts |
-| **Total** | **16 weeks** | **Complete migration** |
-
-### Migration Strategy
-
-| Approach | Status |
-|----------|--------|
-| **Full Go Migration** | ✅ **APPROVED** |
-| Bash scripts | Continue until Go version ready |
-| Timeline | Not a constraint - quality over speed |
+| File | Purpose | Read When |
+|------|---------|-----------|
+| **[TASKS.md](./TASKS.md)** | Task breakdown & tracking | Finding what to implement |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | System design & decisions | Understanding structure, making design choices |
+| **[PATTERNS.md](./PATTERNS.md)** | Code style & patterns | Before coding, during PR review |
+| **[REFERENCE.md](./REFERENCE.md)** | CRDs, commands, troubleshooting | Looking up technical details |
+| **[tasks/](./tasks/)** | Task-specific plans | Working on specific implementation |
 
 ---
 
-## Key Decisions Made
+## Critical Gotchas
 
-All major decisions have been finalized:
+⚠️ **Must-Know Before Implementing**:
 
-### 1. Tool Name
-- ✅ **`obstool`** (observability tooling)
+1. **Multi-step functions MUST use executor pattern**
+   - Any function with 2+ operations requires `*executor.Executor` parameter
+   - Send progress updates at each step
+   - See [PATTERNS.md](./PATTERNS.md#multi-step-functions-executor-pattern)
 
-### 2. Framework
-- ✅ **Cobra** - Industry standard
+2. **ClusterLogForwarder from cluster-logging-operator**
+   - NOT from observability-operator
+   - Module: `github.com/openshift/cluster-logging-operator/apis/observability/v1`
+   - See [REFERENCE.md](./REFERENCE.md#crd-modules)
 
-### 3. User Interaction
-- ✅ **Flags + TUI Hybrid**
-  - CLI mode when all required flags provided
-  - TUI mode when flags missing
-  - No survey/promptui prompts
+3. **Console CRD has version-specific modules**
+   - OCP 4.17-4.18: `github.com/rhobs/openshift-api/console/v1`
+   - OCP 4.19+: `github.com/openshift/api/console/v1`
+   - See [REFERENCE.md](./REFERENCE.md#version-specific-crds)
 
-### 4. Client Library
-- ✅ **controller-runtime directly** (no abstraction layer)
-  - Simpler, more direct approach
+4. **Resources: flat structure except dashboards**
+   - `pkg/resources/*.go` (flat)
+   - `pkg/resources/dashboards/*.go` (subdirectory for 30+ files)
+   - See [ARCHITECTURE.md](./ARCHITECTURE.md#directory-structure)
 
-### 5. Configuration
-- ✅ **Type-safe Go structs** (no config files)
-  - Exposed as package-level variables
+5. **No 1-2 letter variable names**
+   - ✅ Acceptable: `err`, `ctx`, `ok`
+   - ❌ Avoid: `c`, `e`, `i`, `j`, `k`, `x`, `y`
+   - See [PATTERNS.md](./PATTERNS.md#variable-naming)
 
-### 6. Testing
-- ✅ **Minimal** - unit tests for critical code only
-  - No CI/CD automation
-  - No E2E tests
+6. **Cleanup all: flag mode only**
+   - Requires `--confirm=yes` flag
+   - No TUI mode for cleanup all
+   - See [ARCHITECTURE.md](./ARCHITECTURE.md#constraints)
 
-### 7. UI Library
-- ✅ **Bubble Tea** for TUI components
+7. **Authentication: kubeconfig only**
+   - Will NOT run in-cluster
+   - Uses kubeconfig file exclusively
+   - See [ARCHITECTURE.md](./ARCHITECTURE.md#technology-stack)
 
-### 8. Resources
-- ✅ **Go structs only** (no YAML templates)
+8. **No obstool demo command**
+   - Use command composition instead
+   - Workflows via chaining commands
+   - See [ARCHITECTURE.md](./ARCHITECTURE.md#constraints)
 
-### 9. Repository
-- ✅ **Same repo** (development-tools)
+9. **Minimal comments**
+   - Code should be self-documenting
+   - Only add for non-obvious business logic
+   - See [PATTERNS.md](./PATTERNS.md#comments)
+
+10. **Ensure* functions return (bool, error)**
+    - `(true, nil)` = created
+    - `(false, nil)` = already existed
+    - `(false, err)` = error occurred
+    - See [PATTERNS.md](./PATTERNS.md#ensure-functions)
+
+---
+
+## Key Architectural Decisions
+
+**Framework & Libraries**:
+- CLI Framework: **Cobra** (industry standard for k8s tooling)
+- TUI Library: **Bubble Tea** + **Huh** (for interactive mode and forms)
+- Logging: **charmbracelet/log** (structured logging with color support)
+- K8s Client: **controller-runtime directly** (no abstraction layer)
+- Config: **Type-safe Go structs** (no Viper/config files)
+
+**Execution Patterns**:
+- Mode Detection: **Flags + TUI hybrid** (CLI when all flags present, TUI when missing)
+- State Management: **Execution Context pattern** (context.Context with values)
+- Business Logic: **Channel-based decoupling** (business logic sends ProgressUpdate via channels)
+- Resource Structure: **Flat pkg/resources/** (except dashboards/ subdirectory)
+- Output Handling: **CLI general + TUI custom** (CLIHandler for all commands)
+
+**Quality Philosophy**:
+- Testing: **Minimal** (unit tests for critical code only, no CI/CD, no E2E)
+- Timeline: **Not a constraint** (quality over speed)
+- Migration: **Parallel run** (bash scripts continue until Go version ready)
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete details and rationale.
+
+---
+
+## Quick Command Reference
+
+```bash
+# Version info
+obstool version
+
+# Update monitoring plugin
+obstool update monitoring --image=quay.io/my-org/monitoring-plugin:latest
+
+# Cleanup (restore CMO, removes plugin updates)
+obstool cleanup monitoring
+
+# Create test users
+obstool users create --count=6 --password=password
+
+# Deploy components
+obstool deploy logging
+obstool deploy tracing --size=1x.small
+obstool deploy coo --method=bundle
+obstool deploy dashboards
+
+# Cleanup components
+obstool cleanup logging
+obstool cleanup all --confirm=yes  # Flag mode only
+```
+
+See [REFERENCE.md](./REFERENCE.md#command-reference) for complete command list with all flags.
 
 ---
 
 ## Technology Stack
 
-### Core Dependencies
-```
-CLI Framework:          github.com/spf13/cobra
-TUI Library:           github.com/charmbracelet/bubbletea
-                       github.com/charmbracelet/lipgloss
-                       github.com/charmbracelet/huh (forms with paste support)
-Logging:               github.com/charmbracelet/log
-K8s Client:            sigs.k8s.io/controller-runtime (direct, no abstraction)
-OpenShift API:         github.com/openshift/api
-                       github.com/openshift/cluster-logging-operator (for ClusterLogForwarder)
-Operator Framework:    github.com/operator-framework/api
-Terminal Detection:    golang.org/x/term
-Testing:               Standard library testing (minimal)
-Version Comparison:    golang.org/x/mod/semver
-```
-
-### CRD Dependencies (18 total)
-See [crd_go_modules_research.md](./crd_go_modules_research.md) for complete list with versions.
+| Component | Technology | Reason |
+|-----------|-----------|--------|
+| CLI Framework | Cobra | Industry standard for Kubernetes tooling |
+| TUI Library | Bubble Tea + Huh | Best-in-class terminal UI with form support |
+| Logging | charmbracelet/log | Structured logging with color support |
+| K8s Client | controller-runtime | Direct access, no abstraction overhead |
+| Config | Go structs | Type-safe, no config files needed |
 
 ---
 
-## Example Commands (Target State)
+## Directory Structure (Brief)
 
-### Deploy Operations
-```bash
-# Deploy everything (CLI mode with flags)
-obstool deploy all
-
-# Deploy specific stacks (CLI mode)
-obstool deploy logging --data-model=otel --namespace=openshift-logging
-obstool deploy tracing --size=1x.small
-obstool deploy dashboards
-obstool deploy korrel8r
-
-# Deploy with TUI (missing flags triggers TUI)
-obstool deploy logging
-# TUI displays selection interface for data model, namespace, etc.
-
-# COO deployment with method selection
-obstool deploy coo --method=bundle --bundle-url=quay.io/...
-obstool deploy coo --method=operatorhub
+```
+obstool/
+├── cmd/              # Cobra commands (deploy, cleanup, update, users, version)
+├── pkg/              # Reusable packages
+│   ├── config/       # Type-safe config structs
+│   ├── context/      # Execution context pattern
+│   ├── executor/     # Channel-based progress updates
+│   ├── k8s/          # Kubernetes client wrapper
+│   ├── mode/         # Mode detection (CLI vs TUI)
+│   ├── operations/   # Business logic (decoupled from display)
+│   ├── operators/    # OLM utilities, COO deployment
+│   ├── output/       # CLI output handler
+│   ├── resources/    # CRD definitions (flat, except dashboards/)
+│   ├── storage/      # Storage provider interface
+│   ├── tui/          # Bubble Tea TUI components
+│   └── users/        # User/RBAC utilities
+└── internal/         # Private packages
+    ├── constants/    # Shared constants
+    └── version/      # Version detection & comparison
 ```
 
-### COO Upgrade
-```bash
-# Upgrade COO in place
-obstool upgrade coo --to-version=1.5.0
-```
-
-### Monitoring Management
-```bash
-# Scale CMO
-obstool monitoring scale down
-obstool monitoring scale up
-
-# Update plugin image
-obstool monitoring update-image quay.io/user/plugin:v1.2.3
-```
-
-### User Management
-```bash
-# Create test users
-obstool users create --count=6
-
-# Apply RBAC
-obstool users rbac --scenario=perses-e2e
-```
-
-### Cleanup
-```bash
-# Cleanup specific components (mirrors deploy structure)
-obstool cleanup coo
-obstool cleanup logging
-obstool cleanup tracing
-
-# Cleanup everything (flag mode only - requires all flags)
-obstool cleanup all --confirm=yes
-```
-
-**Note**: Demo workflows are achieved by combining the above commands in sequence.
+See [ARCHITECTURE.md](./ARCHITECTURE.md#directory-structure) for complete annotated structure.
 
 ---
 
-## Risk Mitigation
+## Getting Help
 
-| Risk | Mitigation |
-|------|------------|
-| **Migration takes longer** | Phased approach, parallel run of old scripts |
-| **Team resistance** | Early involvement, training, feedback loops |
-| **Loss of functionality** | Comprehensive requirements, feature parity testing |
-| **Bugs in new implementation** | Extensive testing, gradual rollout |
-| **Breaking changes** | Keep old scripts until fully validated |
+### Can't Find Something?
+
+**Question** → **Where to Look**:
+- What needs to be built? → [TASKS.md](./TASKS.md)
+- How to code? → [PATTERNS.md](./PATTERNS.md)
+- System design? → [ARCHITECTURE.md](./ARCHITECTURE.md)
+- CRD modules? → [REFERENCE.md](./REFERENCE.md)
+- Command syntax? → [REFERENCE.md](./REFERENCE.md)
+- Blocked on task? → [ARCHITECTURE.md](./ARCHITECTURE.md) "When Blocked" section
+
+### Still Stuck?
+
+1. Check [PATTERNS.md](./PATTERNS.md) for coding patterns
+2. Look at existing examples:
+   - `pkg/operations/monitoring.go` - Executor pattern example
+   - `pkg/storage/minio.go` - Multi-step function example
+   - `cmd/update/monitoring.go` - Command structure
+3. Review task-specific plan in `tasks/{task-name}/plan.md`
+
+---
+
+## Migration Strategy
+
+**Approach**: Parallel development, no timeline pressure
+
+1. **Bash scripts continue** to work during Go development
+2. **Rebase Go code** when bash scripts change
+3. **No timeline constraints** - focus on quality and maintainability
+4. **Iterative implementation** - start with high-value commands
+5. **100% feature parity** before deprecating bash
+
+Current bash scripts: 58 scripts, 78 YAML files  
+Target: Single Go binary (`obstool`)
+
+---
+
+## Working with This Codebase
+
+### Before Implementation
+1. Read this file (overview, status, gotchas)
+2. Check [TASKS.md](./TASKS.md) for available tasks
+3. Read [PATTERNS.md](./PATTERNS.md) for code standards
+4. Review [ARCHITECTURE.md](./ARCHITECTURE.md) if making design decisions
+
+### During Implementation
+- Update [TASKS.md](./TASKS.md): Mark `[~]` in progress, `[x]` when complete
+- Follow patterns from [PATTERNS.md](./PATTERNS.md)
+- Use executor pattern for multi-step functions
+- Check [REFERENCE.md](./REFERENCE.md) for CRD modules
+- Create task folder: `tasks/{task-name}/plan.md` → get approval → implement → `implementation.md`
+
+### When Blocked
+- Check if dependency task is complete in [TASKS.md](./TASKS.md)
+- Review decision rationale in [ARCHITECTURE.md](./ARCHITECTURE.md)
+- Verify CRD module compatibility in [REFERENCE.md](./REFERENCE.md)
+- Check existing examples in codebase
 
 ---
 
@@ -282,123 +283,23 @@ obstool cleanup all --confirm=yes
 
 ### Technical
 - ✅ 100% functional parity with bash scripts
-- ✅ Minimal unit tests for critical code paths
-- ✅ Fast startup time
-- ✅ All CRD types supported
-- ✅ Version detection working
+- ✅ All CRD types supported (18 types)
+- ✅ Version detection working for OCP 4.11-4.19+
 - ✅ Both CLI and TUI modes functional
 
+### Quality
+- ✅ Type-safe Go code
+- ✅ Consistent progress tracking (executor pattern)
+- ✅ Clean architecture (business logic decoupled)
+- ✅ Maintainable (single source of truth)
+
 ### Adoption
-- ✅ Team can use new tool for daily work
-- ✅ Zero bash scripts eventually (timeline flexible)
-- ✅ Easy for team to contribute and debug
-- ✅ Low barrier to entry for new features
+- ✅ Team using new tool
+- ✅ Bash scripts deprecated
+- ✅ Faster development velocity
 
 ---
 
-## Next Steps
-
-See **[TODO.md](./TODO.md)** for detailed implementation checklist with:
-- Atomic tasks organized by command/feature
-- Dependency tracking (blocked by)
-- Status tracking: `[ ]` Todo | `[~]` In Progress | `[x]` Complete
-- Parallel work opportunities clearly identified
-
-**Migration Strategy**:
-- Bash scripts continue to work during development
-- Rebase Go implementation when bash scripts change
-- Update Go code to match any bash script updates
-- No rush - maintain quality over speed
-
-**Recommended Starting Point**: Foundation tasks (project setup, k8s client, version detection, execution context)
-
----
-
-## Document Versions
-
-| Document | Version | Last Updated | Status |
-|----------|---------|--------------|--------|
-| go-migration-plan.md | 1.1 | June 8, 2026 | Updated with decisions |
-| crd_go_modules_research.md | 1.1 | June 8, 2026 | Corrected ClusterLogForwarder |
-| README.md (this file) | 1.1 | June 8, 2026 | Updated with decisions |
-
----
-
-## References
-
-### Internal
-- Observability Operator PR #1100 (version-specific CRD pattern)
-- Development-tools repository current state
-- Team practices and conventions
-
-### External
-- [Cobra Framework](https://github.com/spf13/cobra) - CLI framework
-- [Perses Login K8s Implementation](https://github.com/perses/perses/blob/main/internal/cli/cmd/login/k8s.go) - Connection pattern reference
-- [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) - K8s client library
-- [OpenShift API](https://github.com/openshift/api) - OpenShift CRDs
-- [Operator Framework API](https://github.com/operator-framework/api) - OLM CRDs
-
----
-
-## Contact & Feedback
-
-**Questions?** Open a discussion in the team channel.
-
-**Found an issue with the plan?** File an issue or submit a PR to update.
-
-**Ready to proceed?** Review the decision points and schedule a team meeting.
-
----
-
-## Appendix: Document Map
-
-```
-📁 ./tmp/
-├── 📄 README.md (this file)
-│   └── Overview, decisions, quick reference, and implementation progress
-│
-├── 📄 CONTEXT.md
-│   └── Quick start for AI agents and developers
-│
-├── 📄 go-migration-plan.md
-│   ├── Current state analysis
-│   ├── Target architecture (updated with team feedback)
-│   ├── 10 key decisions (finalized)
-│   ├── Implementation patterns
-│   ├── Go modules required
-│   ├── Connection requirements
-│   └── Code examples
-│
-├── 📄 crd_go_modules_research.md
-│   ├── 18 CRD types analyzed
-│   ├── Version-specific patterns
-│   ├── Module selection decision trees
-│   ├── Code examples
-│   ├── Compatibility matrix
-│   └── Corrected ClusterLogForwarder info
-│
-├── 📄 TODO.md
-│   └── Atomic task breakdown with status tracking
-│
-├── 📄 UPDATES.md
-│   └── Change log and implementation history
-│
-└── 📁 tasks/
-    ├── k8s-client-package/
-    ├── execution-context/
-    ├── config-package/
-    ├── root-command/
-    ├── tui-framework/
-    ├── update-cleanup-monitoring/
-    └── business-logic-decoupling/
-        ├── plan.md
-        ├── implementation.md
-        ├── go-channels-concurrency-primer.md
-        └── output-handler-architecture.md
-```
-
----
-
-**Status**: ✅ Decisions Made, Ready for Implementation  
-**Action Required**: Begin Phase 1 (Foundation) when ready  
-**Timeline**: Quality over speed - no rush
+**Last Updated**: 2026-06-18  
+**Version**: 2.0 (restructured documentation)  
+**Status**: Active development - Foundation complete, commands in progress

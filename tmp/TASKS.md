@@ -1,6 +1,6 @@
-# obstool Implementation TODO
+# obstool Implementation Tasks
 
-> **🤖 AI Agents**: This is the task list. For project context and patterns, see [CONTEXT.md](./CONTEXT.md) first.
+> **🤖 AI Agents**: Task breakdown and tracking. See [README.md](./README.md) for project overview, [PATTERNS.md](./PATTERNS.md) for code standards.
 
 **Status Legend**: `[ ]` Todo | `[~]` In Progress | `[x]` Complete
 

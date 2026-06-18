@@ -1,6 +1,24 @@
 # development-tools
 A centralized location for the openshift observability-ui team to keep development-related scripts and information.
 
+## 🚀 obstool - New Go CLI (In Development)
+
+We're migrating to a unified Go CLI tool called `obstool` that replaces the bash/make/just/yaml tooling.
+
+**Documentation**: See `tmp/` directory
+- **[tmp/README.md](./tmp/README.md)** - Start here (overview, status, navigation)
+- **[tmp/TASKS.md](./tmp/TASKS.md)** - Implementation tracking
+- **[tmp/ARCHITECTURE.md](./tmp/ARCHITECTURE.md)** - System design
+- **[tmp/PATTERNS.md](./tmp/PATTERNS.md)** - Code patterns
+- **[tmp/REFERENCE.md](./tmp/REFERENCE.md)** - Technical reference
+
+**Status**: Foundation complete, commands in progress  
+**Timeline**: No pressure - quality over speed, bash scripts continue to work
+
+---
+
+## Legacy Tooling (Current)
+
 ## Development
 This repo uses a [Justfile](https://github.com/casey/just) to maintain it's commands. To pass your own image of the observability operator bundle use the flag `OPERATOR_BUNDLE`. For example:
 

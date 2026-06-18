@@ -29,10 +29,11 @@ tasks/
 
 ### 2. Implementation Phase
 - Execute the plan
-- Follow code style guidelines:
+- Follow code patterns from [PATTERNS.md](../PATTERNS.md):
+  - **Multi-step functions MUST use executor pattern**
   - **Minimal to no comments** (code should be self-documenting)
   - **No 1-2 letter variable names** (except `err`, `ctx`, `ok`)
-- Update TODO.md to track progress
+- Update [TASKS.md](../TASKS.md) to track progress
 - Mark subtasks as complete
 
 ### 3. Documentation Phase
@@ -49,33 +50,24 @@ tasks/
 Task folder names should:
 - Be descriptive and concise
 - Use kebab-case (lowercase with hyphens)
-- Match or closely relate to the task name in TODO.md
+- Match or closely relate to the task name in [TASKS.md](../TASKS.md)
 
 **Examples**:
 - `k8s-client-package` - Implement k8s client package
 - `execution-context` - Create execution context package
 - `root-command` - Implement root command
 
-## Completed Tasks
+## Task Status
 
-- ✅ **k8s-client-package**: Kubernetes client implementation with kubeconfig loading and scheme registration
-- ✅ **execution-context**: Execution context package for passing shared state through commands
-- ✅ **config-package**: Type-safe configuration structs (no config files)
-- ✅ **root-command**: Root command with global flags and version command
-- ✅ **tui-framework**: TUI components (progress, selection, styles) and mode detection
-- ✅ **update-cleanup-monitoring**: Update and cleanup monitoring commands (first commands implemented)
-- ✅ **business-logic-decoupling**: Channel-based architecture for separating business logic from display logic
+See [TASKS.md](../TASKS.md) for current task status and breakdown.
 
-## In Progress
+**Completed** (examples):
+- ✅ k8s-client-package, execution-context, config-package
+- ✅ root-command, tui-framework
+- ✅ update-cleanup-monitoring, business-logic-decoupling
+- ✅ storage-provider-interface
 
-(None currently)
-
-## Planned
-
-- Deploy commands (COO, logging, tracing, dashboards, monitoring)
-- Users commands (create, rbac)
-- Additional cleanup commands (COO, logging, tracing, ACM, all)
-- And more per TODO.md
+**Full list**: See [TASKS.md](../TASKS.md)
 
 ---
 

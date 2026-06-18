@@ -1,6 +1,8 @@
-# obstool Coding Standards
+# obstool Code Patterns
 
-Quick reference for code style and patterns used in obstool.
+Required patterns and code style for obstool development.
+
+> **Quick Reference**: This is THE authoritative source for how to write code in obstool. See [README.md](./README.md) for overview, [ARCHITECTURE.md](./ARCHITECTURE.md) for system design.
 
 ---
 
