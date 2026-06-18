@@ -153,22 +153,29 @@
     - Blocked by: Implement update coo command
 
 ### Cleanup COO
-- [ ] **Implement cleanup coo command**
-  - [ ] Create `cmd/cleanup/coo.go`
-  - [ ] Delete COO Subscription
-  - [ ] Delete CSV
-  - [ ] Delete CatalogSource if created
-  - [ ] Delete IDMS if created
-  - Blocked by: Implement cleanup command group
+- [x] **Implement cleanup coo command**
+  - [x] Create `cmd/cleanup/coo.go`
+  - [x] Delete COO Subscription
+  - [x] Delete CSV
+  - [x] Delete CatalogSource if created
+  - [x] Delete IDMS if created
+  - [x] Optional: Delete OperatorGroup
+  - [x] Optional: Delete Namespace
+  - Blocked by: Implement cleanup command group ✅
+  - Implementation: [tasks/cleanup-coo-logging/plan.md](./tasks/cleanup-coo-logging/plan.md)
 
 ### Cleanup Logging
-- [ ] **Implement cleanup logging command**
-  - [ ] Create `cmd/cleanup/logging.go`
-  - [ ] Delete UIPlugin
-  - [ ] Delete ClusterLogForwarder
-  - [ ] Delete LokiStack
-  - [ ] Delete MinIO resources
-  - Blocked by: Implement cleanup command group
+- [x] **Implement cleanup logging command**
+  - [x] Create `cmd/cleanup/logging.go`
+  - [x] Delete UIPlugin
+  - [x] Delete ClusterLogForwarder
+  - [x] Delete LokiStack
+  - [x] Delete MinIO resources
+  - [x] Delete collector RBAC
+  - [x] Optional: Delete operators
+  - [x] Optional: Delete namespaces
+  - Blocked by: Implement cleanup command group ✅
+  - Implementation: [tasks/cleanup-coo-logging/plan.md](./tasks/cleanup-coo-logging/plan.md)
 
 ### Cleanup Tracing
 - [ ] **Implement cleanup tracing command**

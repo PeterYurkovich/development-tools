@@ -36,3 +36,18 @@ func EnsureNamespaceWithLabels(ctx context.Context, kubeClient client.Client,
 
 	return true, nil
 }
+
+func DeleteNamespace(ctx context.Context, kubeClient client.Client, name string) error {
+	namespace := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	err := kubeClient.Delete(ctx, namespace)
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	return nil
+}
