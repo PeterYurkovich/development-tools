@@ -407,35 +407,21 @@
     - Blocked by: Implement storage provider interface
 
 ### OLM Utilities
-- [ ] **Implement OLM utilities**
-  - [ ] Create `pkg/operators/olm.go`
-  - [ ] Create `pkg/operators/subscription.go`
-  - [ ] Helper functions for Subscription creation
-  - [ ] Helper functions for waiting on CSV installation
-  - Blocked by: Implement k8s client package
-
-### Waiting/Polling
-- [ ] **Implement mode-aware waiting**
-  - [ ] Add wait helpers to output package
-  - [ ] TUI mode: show progress in TUI
-  - [ ] CLI mode: silent polling
-  - Blocked by: Create output package, Create TUI package structure
-
----
-
-## Testing (Minimal)
-
-### Critical Unit Tests
-- [ ] **Test kubeconfig loading**
-  - [ ] Create `pkg/k8s/connection_test.go`
-  - [ ] Test priority: flag > env > default
-  - Blocked by: Implement k8s client package
-
-- [ ] **Test resource construction**
-  - [ ] Test LokiStack struct creation
-  - [ ] Test TempoStack struct creation
-  - [ ] Test that required fields are set
-  - Blocked by: Implement individual resource files
+- [x] **Implement OLM utilities**
+  - [x] Create `pkg/operators/olm.go`
+  - [x] Create `pkg/operators/subscription.go`
+  - [x] Create `pkg/operators/catalogsource.go`
+  - [x] Create `pkg/operators/operatorgroup.go`
+  - [x] Create `pkg/operators/idms.go`
+  - [x] Helper functions for Subscription creation
+  - [x] Helper functions for CatalogSource management
+  - [x] Helper functions for waiting on CSV installation (with TUI countdown)
+  - [x] Helper functions for OperatorGroup management
+  - [x] Helper functions for IDMS management
+  - [x] Executor integration for progress reporting
+  - [x] Update scheme registration for operatorsv1
+  - Blocked by: Implement k8s client package (✅ Complete)
+  - Implementation: [tmp/tasks/olm-utilities/implementation.md](./tasks/olm-utilities/implementation.md)
 
 ---
 
@@ -471,7 +457,6 @@
 - [ ] **Add shell completion generation**
   - [ ] Generate bash completion
   - [ ] Generate zsh completion
-  - [ ] Generate fish completion
   - Blocked by: Implement root command
 
 - [ ] **Create release process**

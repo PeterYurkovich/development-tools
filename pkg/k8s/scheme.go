@@ -9,6 +9,7 @@ import (
 	configv1 "github.com/openshift/api/config/v1"
 	consolev1 "github.com/openshift/api/console/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	operatorsv1 "github.com/operator-framework/api/pkg/operators/v1"
 	operatorsv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 )
 
@@ -27,6 +28,9 @@ func registerSchemes(scheme *runtime.Scheme) error {
 	}
 	if err := operatorsv1alpha1.AddToScheme(scheme); err != nil {
 		return fmt.Errorf("failed to register olm operators/v1alpha1 scheme: %w", err)
+	}
+	if err := operatorsv1.AddToScheme(scheme); err != nil {
+		return fmt.Errorf("failed to register olm operators/v1 scheme: %w", err)
 	}
 	return nil
 }
