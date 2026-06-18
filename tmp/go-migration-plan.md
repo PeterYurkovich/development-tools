@@ -241,7 +241,62 @@ func deployLogging(execCtx *ExecutionContext, cfg LoggingConfig) error {
 - ❌ Avoid: `c`, `e`, `i`, `j`, `k`, `x`, `y`, `s`, `r`
 - Use descriptive names: `client`, `config`, `namespace`, `index`, `count`, `result`
 
-**Example - Good**:
+**Multi-Step Functions (Executor Pattern)**:
+- Any function performing multiple operations MUST support the executor pattern
+- Accept `*executor.Executor` as a parameter
+- Define step constants at package level: `const (StepOne = iota; StepTwo; ...)`
+- Send progress updates: `exec.SendUpdate(step, executor.StatusInProgress, "Description")`
+- Send detailed logs: `exec.SendLog(step, "Detailed message")`
+- Send errors with context: `exec.SendUpdateWithError(step, executor.StatusFailed, "Description", err)`
+- Always mark steps complete: `exec.SendUpdate(step, executor.StatusComplete, "Description")`
+- Pattern enables both CLI and TUI modes with consistent progress tracking
+- Examples: `pkg/operations/monitoring.go`, `pkg/storage/minio.go`
+
+**Ensure Functions**:
+- Functions named `Ensure*` that create resources idempotently must return `(bool, error)`
+- Return `(true, nil)` when a new resource was created
+- Return `(false, nil)` when an existing resource was found
+- Return `(false, err)` on error
+- Allows callers to know whether action was taken or resource already existed
+- Example: `func EnsureOperatorGroup(...) (bool, error)` returns whether it created a new group
+
+**Example - Multi-Step Function with Executor Pattern**:
+```go
+const (
+    StepCreateNamespace = iota
+    StepCreateResources
+    StepWaitForReady
+)
+
+func DeployComponent(ctx context.Context, client client.Client, 
+                    config Config, exec *executor.Executor) error {
+    stepName := "Create namespace"
+    exec.SendUpdate(StepCreateNamespace, executor.StatusInProgress, stepName)
+    exec.SendLog(StepCreateNamespace, "Ensuring namespace exists")
+    
+    err := createNamespace(ctx, client, config.Namespace)
+    if err != nil {
+        exec.SendUpdateWithError(StepCreateNamespace, executor.StatusFailed, stepName, err)
+        return err
+    }
+    exec.SendUpdate(StepCreateNamespace, executor.StatusComplete, stepName)
+    
+    stepName = "Create resources"
+    exec.SendUpdate(StepCreateResources, executor.StatusInProgress, stepName)
+    exec.SendLog(StepCreateResources, fmt.Sprintf("Creating %d resources", len(config.Resources)))
+    
+    err = createResources(ctx, client, config.Resources)
+    if err != nil {
+        exec.SendUpdateWithError(StepCreateResources, executor.StatusFailed, stepName, err)
+        return err
+    }
+    exec.SendUpdate(StepCreateResources, executor.StatusComplete, stepName)
+    
+    return nil
+}
+```
+
+**Example - Good Variable Naming**:
 ```go
 func NewClient(ctx context.Context, kubeconfigPath string) (*Client, error) {
     config, err := getKubeConfig(kubeconfigPath)
@@ -852,6 +907,7 @@ func (h *Handler) Error(msg string, args ...interface{}) {
         fmt.Fprintf(os.Stderr, "%s %s\n", red("✗"), fmt.Sprintf(msg, args...))
     }
 }
+```
 
 **Usage in Commands**:
 ```go

@@ -28,12 +28,14 @@
 - ✅ TUI framework (Bubble Tea components, mode detection)
 - ✅ Business logic decoupling (channel-based architecture)
 - ✅ First commands implemented (update/cleanup monitoring)
+- ✅ OLM utilities (subscription, catalogsource, CSV waiting, operatorgroup, IDMS)
+- ✅ Storage provider interface (MinIO abstraction for Loki/Tempo/ACM)
 
 ### In Progress
-- 🔄 
+- 🔄 Deploy COO commands (bundle, fbc, stage, operatorhub)
 
 ### Not Started
-- ⏸️ Deploy commands (COO, logging, tracing, dashboards)
+- ⏸️ Deploy commands (logging, tracing, dashboards)
 - ⏸️ Users commands (create, rbac)
 - ⏸️ Additional cleanup commands (COO, logging, tracing, ACM, all)
 
@@ -60,9 +62,10 @@
 - Timeline: **Not a constraint** (quality over speed)
 - Migration: **Parallel run** (bash scripts continue until Go version ready)
 
-**Code Style**
+**Code Style** (See [CODING_STANDARDS.md](./CODING_STANDARDS.md) for complete reference)
 - Comments: **Minimal to none** (prefer self-documenting code)
 - Variables: **No 1-2 letter names** (use descriptive names: `err`, `ctx`, `client` OK; `c`, `e`, `i` not OK)
+- Multi-step functions: **MUST use executor pattern** (progress tracking for CLI/TUI modes)
 
 **Constraints**
 - No `obstool demo` command (workflows via command composition)
@@ -76,6 +79,9 @@
 
 ### For Implementation Tasks
 → **[TODO.md](./TODO.md)** - Atomic task breakdown with dependencies and status tracking
+
+### For Coding Standards
+→ **[CODING_STANDARDS.md](./CODING_STANDARDS.md)** - Required patterns, style guide, executor pattern, examples
 
 ### For Architecture & Design
 → **[go-migration-plan.md](./go-migration-plan.md)** - Complete architecture, code patterns, execution context examples
@@ -252,6 +258,22 @@ burst := 100
 - ✅ Acceptable: `err`, `ctx`, `ok`
 - ❌ Avoid: `c`, `e`, `i`, `j`, `k`, `x`, `y`
 - Use descriptive names: `client`, `config`, `namespace`, `index`, `count`
+
+**Multi-Step Functions**:
+- Any function performing multiple operations MUST support the executor pattern
+- Accept `*executor.Executor` as a parameter
+- Define step constants (`const StepOne = iota`)
+- Send progress updates via `exec.SendUpdate(step, status, description)`
+- Send detailed logs via `exec.SendLog(step, message)`
+- Send errors via `exec.SendUpdateWithError(step, status, description, err)`
+- Examples: `pkg/operations/monitoring.go`, `pkg/storage/minio.go`
+
+**Ensure Functions**:
+- Functions named `Ensure*` that create resources idempotently must return `(bool, error)`
+- Return `(true, nil)` when a new resource was created
+- Return `(false, nil)` when an existing resource was found
+- Return `(false, err)` on error
+- Example: `func EnsureOperatorGroup(...) (bool, error)` returns whether it created a new group
 
 ### Adding a New Command
 

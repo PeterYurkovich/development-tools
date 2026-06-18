@@ -396,14 +396,16 @@
 ## Supporting Infrastructure
 
 ### Storage Provider
-- [ ] **Implement storage provider interface**
-  - [ ] Create `pkg/storage/provider.go`
-  - [ ] Define `StorageProvider` interface
+- [x] **Implement storage provider interface**
+  - [x] Create `pkg/storage/provider.go`
+  - [x] Define `StorageProvider` interface
   - Blocked by: Set up directory structure
 
-  - [ ] **Implement MinIO provider**
-    - [ ] Update `pkg/resources/minio.go` to implement interface
-    - [ ] Mark for future deprecation in comments
+  - [x] **Implement MinIO provider**
+    - [x] Create `pkg/storage/minio.go` to implement interface
+    - [x] Creates namespace if missing
+    - [x] Waits for deployment to be ready
+    - [x] Generic S3-compatible secret format
     - Blocked by: Implement storage provider interface
 
 ### OLM Utilities
