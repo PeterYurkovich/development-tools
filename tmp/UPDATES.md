@@ -8,7 +8,69 @@
 
 ---
 
-## Latest Updates (June 9, 2026)
+## Latest Updates (June 18, 2026)
+
+### 1. TUI Framework Documentation Consolidation
+**Purpose**: Consolidate scattered TUI framework implementation docs into comprehensive reference
+
+**Changes Made**:
+1. **Updated TODO.md** (lines 78-110)
+   - Marked all TUI Framework tasks as `[x]` complete
+   - Marked all Mode Detection tasks as `[x]` complete
+   - Marked all Output Handling tasks as `[x]` complete
+   - Added notes about production usage (monitoring commands using framework)
+
+2. **Created SUMMARY.md** (`tmp/tasks/tui-framework/SUMMARY.md`)
+   - 600+ lines comprehensive overview
+   - Architecture overview with component diagrams
+   - Implementation timeline (6 phases over 3 weeks)
+   - Deep dive on all 7 components
+   - 5 integration patterns with code examples
+   - Production usage examples
+   - Testing results and success metrics
+   - Single source of truth for TUI Framework
+
+3. **Archived Historical Docs** (`tmp/tasks/tui-framework/archive/`)
+   - Moved 6 incremental implementation docs to archive
+   - Created archive README with reading order
+   - Preserves historical context and decision rationale
+
+**Reason**: TUI Framework implementation was complete, but TODO.md didn't reflect this. Multiple implementation docs existed without a comprehensive overview. This consolidation provides clear project state and single reference document.
+
+**Validation**: Build tested, all code compiles, zero bugs in production use.
+
+### 2. Migrated Output Handler to charmbracelet/log
+**Purpose**: Use proper logging library instead of fmt.Println
+
+**Changes Made**:
+1. **Added Dependency**: `github.com/charmbracelet/log v1.0.0`
+   - Also added: `github.com/go-logfmt/logfmt v0.6.1` (transitive)
+
+2. **Refactored pkg/output/output.go**:
+   - Replaced `fmt.Println` with `log.Logger`
+   - Color profiles: TrueColor for TUI mode, Ascii (no color) for CLI mode
+   - Timestamps and caller reporting disabled (cleaner output)
+   - Better structured logging with proper log levels
+   - Error messages properly go to stderr via logger
+
+**Benefits**:
+- ✅ Professional logging library from Charm ecosystem (matches bubbletea/lipgloss)
+- ✅ Better color profile management (automatic terminal detection)
+- ✅ Consistent with other Charm tools
+- ✅ Structured logging support for future enhancements
+- ✅ Proper stderr handling for errors
+
+**Code Changes**:
+- `NewHandler()` now creates a `log.Logger` with appropriate color profile
+- `Info()`, `Success()`, `Progress()` use logger with prefixes in TUI mode
+- `Error()` uses `logger.Error()` for proper error-level logging
+- CLI mode uses plain logger output (no colors, no prefixes)
+
+**Validation**: Build tested, compiles successfully, monitoring commands still work.
+
+---
+
+## Previous Updates (June 9, 2026)
 
 ### Agent-Friendly Documentation Enhancements
 **Purpose**: Make documentation easily consumable by AI agents starting work on the project

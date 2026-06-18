@@ -76,37 +76,48 @@
     - Blocked by: Implement root command
 
 ### TUI Framework
-- [ ] **Create TUI package structure**
-  - [ ] Create `pkg/tui/models.go` with base model interface
-  - [ ] Create `pkg/tui/styles.go` with lipgloss styles
+- [x] **Create TUI package structure**
+  - [x] Create `pkg/tui/models.go` with base model interface
+  - [x] Create `pkg/tui/styles.go` with lipgloss styles
   - Blocked by: Add core dependencies
 
-  - [ ] **Implement deploy selection TUI**
-    - [ ] Create `pkg/tui/deploy.go`
-    - [ ] Multi-select checkbox list for components
-    - [ ] "Select All" option
+  - [x] **Implement deploy selection TUI**
+    - [x] Create `pkg/tui/deploy.go`
+    - [x] Multi-select checkbox list for components
+    - [x] "Select All" option
     - Blocked by: Create TUI package structure
+    - Note: Ready for use in deploy command group
 
-  - [ ] **Implement progress TUI**
-    - [ ] Create `pkg/tui/progress.go`
-    - [ ] Display operation progress with checkmarks
-    - [ ] Real-time status updates
+  - [x] **Implement progress TUI**
+    - [x] Create `pkg/tui/progress.go`
+    - [x] Display operation progress with checkmarks
+    - [x] Real-time status updates
     - Blocked by: Create TUI package structure
+    - Note: In use by monitoring commands
+
+  - [x] **Implement input collection TUI**
+    - [x] Integrated `huh` library for forms (paste support, validation)
+    - [x] Replaced custom forms with production-ready components
+    - Note: In use by `update monitoring` command
 
 ### Mode Detection
-- [ ] **Implement mode detection utilities**
-  - [ ] Create utility to check if all required flags are present
-  - [ ] Create utility to check if running in terminal (isTerminal)
-  - [ ] Add helpers to determine CLI vs TUI mode
+- [x] **Implement mode detection utilities**
+  - [x] Create utility to check if all required flags are present
+  - [x] Create utility to check if running in terminal (isTerminal)
+  - [x] Add helpers to determine CLI vs TUI mode
   - Blocked by: Implement root command
+  - Note: `pkg/mode/detect.go` with `DetermineMode()` function
 
 ### Output Handling
-- [ ] **Create output package**
-  - [ ] Create `pkg/output/output.go`
-  - [ ] Implement `Handler` with mode-aware output
-  - [ ] Add `Info()`, `Success()`, `Error()` methods
-  - [ ] Different behavior for CLI vs TUI mode
+- [x] **Create output package**
+  - [x] Create `pkg/output/output.go`
+  - [x] Implement `Handler` with mode-aware output
+  - [x] Add `Info()`, `Success()`, `Error()` methods
+  - [x] Different behavior for CLI vs TUI mode
+  - [x] Add `Progress()` method
+  - [x] Add `IsTerminal()` helper
   - Blocked by: Create execution context package
+  - Note: In use by monitoring commands
 
 ---
 

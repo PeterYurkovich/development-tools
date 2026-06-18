@@ -2,52 +2,67 @@ package output
 
 import (
 	"context"
-	"fmt"
 	"os"
 
+	"github.com/charmbracelet/log"
+	"github.com/muesli/termenv"
 	"golang.org/x/term"
 
 	execctx "github.com/observability-ui/development-tools/pkg/context"
-	"github.com/observability-ui/development-tools/pkg/tui"
 )
 
 type Handler struct {
-	ctx context.Context
+	ctx    context.Context
+	logger *log.Logger
 }
 
 func NewHandler(ctx context.Context) *Handler {
-	return &Handler{ctx: ctx}
+	logger := log.NewWithOptions(os.Stderr, log.Options{
+		ReportTimestamp: false,
+		ReportCaller:    false,
+	})
+
+	if execctx.IsTUI(ctx) {
+		logger.SetColorProfile(termenv.TrueColor)
+	} else {
+		logger.SetColorProfile(termenv.Ascii)
+	}
+
+	return &Handler{
+		ctx:    ctx,
+		logger: logger,
+	}
 }
 
 func (h *Handler) Info(message string) {
 	if execctx.IsTUI(h.ctx) {
-		fmt.Println(tui.InfoStyle.Render(message))
+		h.logger.Info(message)
 	} else {
-		fmt.Println(message)
+		h.logger.Print(message)
 	}
 }
 
 func (h *Handler) Success(message string) {
 	if execctx.IsTUI(h.ctx) {
-		fmt.Println(tui.SuccessStyle.Render("✓ " + message))
+		h.logger.SetPrefix("✓ ")
+		h.logger.Info(message)
+		h.logger.SetPrefix("")
 	} else {
-		fmt.Println(message)
+		h.logger.Print(message)
 	}
 }
 
 func (h *Handler) Error(message string) {
-	if execctx.IsTUI(h.ctx) {
-		fmt.Fprintln(os.Stderr, tui.ErrorStyle.Render("✗ "+message))
-	} else {
-		fmt.Fprintln(os.Stderr, "Error: "+message)
-	}
+	h.logger.Error(message)
 }
 
 func (h *Handler) Progress(message string) {
 	if execctx.IsTUI(h.ctx) {
-		fmt.Println(tui.ProgressStyle.Render("⋯ " + message))
+		h.logger.SetPrefix("⋯ ")
+		h.logger.Info(message)
+		h.logger.SetPrefix("")
 	} else {
-		fmt.Println(message)
+		h.logger.Print(message)
 	}
 }
 
