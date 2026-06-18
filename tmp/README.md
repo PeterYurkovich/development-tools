@@ -3,8 +3,8 @@
 > **🤖 AI Agents**: Start with [CONTEXT.md](./CONTEXT.md) for quick orientation, then return here for detailed decisions reference.
 
 **Repository**: development-tools (OpenShift Observability UI Team)  
-**Date**: June 8, 2026  
-**Status**: Implementation Phase  
+**Date**: June 8, 2026 (Updated: June 18, 2026)  
+**Status**: Implementation Phase - Foundation Complete, Commands In Progress  
 **Purpose**: Comprehensive analysis and migration plan for converting the repository to Go
 
 ---
@@ -158,8 +158,8 @@ All major decisions have been finalized:
   - No survey/promptui prompts
 
 ### 4. Client Library
-- ✅ **controller-runtime** with abstraction layer
-  - Allows future swap to client-go if needed
+- ✅ **controller-runtime directly** (no abstraction layer)
+  - Simpler, more direct approach
 
 ### 5. Configuration
 - ✅ **Type-safe Go structs** (no config files)
@@ -188,11 +188,13 @@ All major decisions have been finalized:
 CLI Framework:          github.com/spf13/cobra
 TUI Library:           github.com/charmbracelet/bubbletea
                        github.com/charmbracelet/lipgloss
-K8s Client:            sigs.k8s.io/controller-runtime (with abstraction)
+                       github.com/charmbracelet/huh (forms with paste support)
+Logging:               github.com/charmbracelet/log
+K8s Client:            sigs.k8s.io/controller-runtime (direct, no abstraction)
 OpenShift API:         github.com/openshift/api
                        github.com/openshift/cluster-logging-operator (for ClusterLogForwarder)
 Operator Framework:    github.com/operator-framework/api
-Output/Colors:         github.com/fatih/color
+Terminal Detection:    golang.org/x/term
 Testing:               Standard library testing (minimal)
 Version Comparison:    golang.org/x/mod/semver
 ```
@@ -353,7 +355,10 @@ See **[TODO.md](./TODO.md)** for detailed implementation checklist with:
 ```
 📁 ./tmp/
 ├── 📄 README.md (this file)
-│   └── Overview, decisions, and quick reference
+│   └── Overview, decisions, quick reference, and implementation progress
+│
+├── 📄 CONTEXT.md
+│   └── Quick start for AI agents and developers
 │
 ├── 📄 go-migration-plan.md
 │   ├── Current state analysis
@@ -364,13 +369,32 @@ See **[TODO.md](./TODO.md)** for detailed implementation checklist with:
 │   ├── Connection requirements
 │   └── Code examples
 │
-└──  📄 crd_go_modules_research.md
-    ├── 18 CRD types analyzed
-    ├── Version-specific patterns
-    ├── Module selection decision trees
-    ├── Code examples
-    ├── Compatibility matrix
-    └── Corrected ClusterLogForwarder info
+├── 📄 crd_go_modules_research.md
+│   ├── 18 CRD types analyzed
+│   ├── Version-specific patterns
+│   ├── Module selection decision trees
+│   ├── Code examples
+│   ├── Compatibility matrix
+│   └── Corrected ClusterLogForwarder info
+│
+├── 📄 TODO.md
+│   └── Atomic task breakdown with status tracking
+│
+├── 📄 UPDATES.md
+│   └── Change log and implementation history
+│
+└── 📁 tasks/
+    ├── k8s-client-package/
+    ├── execution-context/
+    ├── config-package/
+    ├── root-command/
+    ├── tui-framework/
+    ├── update-cleanup-monitoring/
+    └── business-logic-decoupling/
+        ├── plan.md
+        ├── implementation.md
+        ├── go-channels-concurrency-primer.md
+        └── output-handler-architecture.md
 ```
 
 ---

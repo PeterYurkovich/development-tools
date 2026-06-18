@@ -60,6 +60,11 @@ Task folder names should:
 
 - ✅ **k8s-client-package**: Kubernetes client implementation with kubeconfig loading and scheme registration
 - ✅ **execution-context**: Execution context package for passing shared state through commands
+- ✅ **config-package**: Type-safe configuration structs (no config files)
+- ✅ **root-command**: Root command with global flags and version command
+- ✅ **tui-framework**: TUI components (progress, selection, styles) and mode detection
+- ✅ **update-cleanup-monitoring**: Update and cleanup monitoring commands (first commands implemented)
+- ✅ **business-logic-decoupling**: Channel-based architecture for separating business logic from display logic
 
 ## In Progress
 
@@ -67,9 +72,9 @@ Task folder names should:
 
 ## Planned
 
-- Configuration package
-- Root command
-- TUI framework
+- Deploy commands (COO, logging, tracing, dashboards, monitoring)
+- Users commands (create, rbac)
+- Additional cleanup commands (COO, logging, tracing, ACM, all)
 - And more per TODO.md
 
 ---

@@ -1,16 +1,15 @@
 package cleanup
 
 import (
-	"context"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/observability-ui/development-tools/internal/constants"
 	execctx "github.com/observability-ui/development-tools/pkg/context"
-	"github.com/observability-ui/development-tools/pkg/k8s"
+	"github.com/observability-ui/development-tools/pkg/executor"
+	"github.com/observability-ui/development-tools/pkg/operations"
 	"github.com/observability-ui/development-tools/pkg/output"
 	"github.com/observability-ui/development-tools/pkg/tui"
 )
@@ -27,54 +26,70 @@ func init() {
 }
 
 func runCleanupMonitoring(cmd *cobra.Command, args []string) error {
+	isTUI := output.IsTerminal()
+
+	if isTUI {
+		return runCleanupMonitoringTUI(cmd)
+	}
+
+	return runCleanupMonitoringCLI(cmd)
+}
+
+func runCleanupMonitoringCLI(cmd *cobra.Command) error {
 	ctx := cmd.Context()
+	ctx = execctx.WithTUI(ctx, false)
+
 	kubeClient, err := execctx.GetClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	isTUI := output.IsTerminal()
-	ctx = execctx.WithTUI(ctx, isTUI)
+	handler := output.NewCLIHandler()
+	exec := executor.NewExecutor()
 
-	if isTUI {
-		return runCleanupMonitoringTUI(ctx, kubeClient)
+	go operations.CleanupMonitoring(ctx, kubeClient, operations.CleanupMonitoringConfig{}, exec)
+
+	for update := range exec.UpdateCh {
+		if err := handler.HandleUpdate(update); err != nil {
+			return err
+		}
 	}
-
-	return runCleanupMonitoringCLI(ctx, kubeClient)
-}
-
-func runCleanupMonitoringCLI(ctx context.Context, kubeClient client.Client) error {
-	out := output.NewHandler(ctx)
-
-	out.Info("Restoring monitoring to normal state")
-
-	out.Progress("Scaling up CMO...")
-	if err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 1); err != nil {
-		out.Error(fmt.Sprintf("Failed to scale up CMO: %v", err))
-		return err
-	}
-	out.Success(fmt.Sprintf("Scaled up %s (will reconcile monitoring plugin)", constants.CMODeployment))
 
 	return nil
 }
 
-func runCleanupMonitoringTUI(ctx context.Context, kubeClient client.Client) error {
-	operations := []string{
+func runCleanupMonitoringTUI(cmd *cobra.Command) error {
+	ctx := cmd.Context()
+	ctx = execctx.WithTUI(ctx, true)
+
+	kubeClient, err := execctx.GetClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	operationsList := []string{
 		fmt.Sprintf("Scale up %s", constants.CMODeployment),
 	}
 
-	model := tui.NewProgressModel("Restoring Monitoring", operations)
+	model := tui.NewProgressModel("Restoring Monitoring", operationsList)
 	program := tea.NewProgram(model)
 
-	go func() {
-		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationInProgress})
+	exec := executor.NewExecutor()
 
-		err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 1)
-		if err != nil {
-			program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationFailed, Error: err})
-			return
+	go operations.CleanupMonitoring(ctx, kubeClient, operations.CleanupMonitoringConfig{}, exec)
+
+	go func() {
+		for update := range exec.UpdateCh {
+			if update.Message != "" {
+				continue
+			}
+
+			program.Send(tui.OperationUpdateMsg{
+				Index:  update.Index,
+				Status: convertStatus(update.Status),
+				Error:  update.Error,
+			})
 		}
-		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationComplete})
 	}()
 
 	finalModel, err := program.Run()
@@ -88,4 +103,19 @@ func runCleanupMonitoringTUI(ctx context.Context, kubeClient client.Client) erro
 	}
 
 	return nil
+}
+
+func convertStatus(status executor.UpdateStatus) tui.OperationStatus {
+	switch status {
+	case executor.StatusPending:
+		return tui.OperationPending
+	case executor.StatusInProgress:
+		return tui.OperationInProgress
+	case executor.StatusComplete:
+		return tui.OperationComplete
+	case executor.StatusFailed:
+		return tui.OperationFailed
+	default:
+		return tui.OperationPending
+	}
 }

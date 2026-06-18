@@ -3,9 +3,12 @@
 > **🤖 AI Agents**: This document contains detailed architecture, patterns, and code examples. For quick context, see [CONTEXT.md](./CONTEXT.md) first.
 
 **Repository**: development-tools (OpenShift Observability UI Team)  
-**Date**: June 8, 2026  
+**Date**: June 8, 2026 (Updated: June 18, 2026)  
+**Status**: Implementation in progress - Foundation complete, commands being added  
 **Scope**: Convert from multi-technology stack (bash, make, just, js, yaml) to Go-based CLI  
 **Purpose**: Detailed architecture reference and implementation patterns
+
+> **📌 IMPLEMENTATION UPDATE (June 18, 2026)**: Foundation and TUI framework complete. Business logic now uses channel-based decoupling pattern. See `tmp/tasks/business-logic-decoupling/` for details on the implemented architecture.
 
 ---
 
@@ -1145,22 +1148,21 @@ go 1.22
 
 require (
     // CLI Framework
-    github.com/spf13/cobra v1.8.0
-    github.com/spf13/viper v1.18.0
+    github.com/spf13/cobra v1.10.2
     
-    // Kubernetes Client
-    k8s.io/client-go v0.29.0
-    k8s.io/apimachinery v0.29.0
-    sigs.k8s.io/controller-runtime v0.17.0
+    // Kubernetes Client (NO VIPER - using type-safe structs)
+    k8s.io/client-go v0.36.0
+    k8s.io/apimachinery v0.36.0
+    sigs.k8s.io/controller-runtime v0.21.3
     
     // OpenShift APIs
-    github.com/openshift/api v0.0.0-20260511191110-9b69e5fa27e9
-    github.com/rhobs/openshift-api v0.0.0-20260512142436-2e89e902a420 // For backward compat
+    github.com/openshift/api v0.0.0-20260605005319
+    github.com/openshift/cluster-logging-operator // For ClusterLogForwarder
     
     // Operator Framework
-    github.com/operator-framework/api v0.42.0
+    github.com/operator-framework/api v0.43.0
     
-    // Observability CRDs
+    // Observability CRDs (as needed)
     github.com/grafana/loki/operator v0.0.0-20260101000000-xxxxx
     github.com/grafana/tempo-operator v0.20.0
     github.com/open-telemetry/opentelemetry-operator v0.148.0
@@ -1171,15 +1173,16 @@ require (
     github.com/rhobs/observability-operator v0.0.0-20260101000000-xxxxx
     github.com/stolostron/multicluster-observability-operator v0.0.0-20260101000000-xxxxx
     
-    // Interactive UI
-    github.com/AlecAivazis/survey/v2 v2.3.7
-    github.com/briandowns/spinner v1.23.0
-    github.com/fatih/color v1.16.0
-    github.com/olekukonko/tablewriter v0.0.5
+    // TUI (SELECTED - not optional)
+    github.com/charmbracelet/bubbletea v1.3.10
+    github.com/charmbracelet/lipgloss v1.1.0
+    github.com/charmbracelet/huh v1.0.0  // Forms with paste support
+    github.com/charmbracelet/bubbles v1.0.0
+    github.com/charmbracelet/log v1.0.0  // Structured logging
     
-    // Optional: TUI (if chosen)
-    github.com/charmbracelet/bubbletea v0.25.0
-    github.com/charmbracelet/lipgloss v0.10.0
+    // Terminal utilities
+    github.com/muesli/termenv // For color profiles
+    golang.org/x/term v0.44.0  // Terminal detection
     
     // Utilities
     github.com/pkg/errors v0.9.1

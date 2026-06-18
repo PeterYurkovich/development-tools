@@ -9,8 +9,9 @@ import (
 
 	"github.com/observability-ui/development-tools/internal/constants"
 	execctx "github.com/observability-ui/development-tools/pkg/context"
-	"github.com/observability-ui/development-tools/pkg/k8s"
+	"github.com/observability-ui/development-tools/pkg/executor"
 	"github.com/observability-ui/development-tools/pkg/mode"
+	"github.com/observability-ui/development-tools/pkg/operations"
 	"github.com/observability-ui/development-tools/pkg/output"
 	"github.com/observability-ui/development-tools/pkg/tui"
 )
@@ -56,23 +57,18 @@ func runUpdateMonitoringCLI(cmd *cobra.Command) error {
 		return err
 	}
 
-	out := output.NewHandler(ctx)
+	handler := output.NewCLIHandler()
+	exec := executor.NewExecutor()
 
-	out.Info(fmt.Sprintf("Updating monitoring plugin to image: %s", image))
+	go operations.UpdateMonitoring(ctx, kubeClient, operations.UpdateMonitoringConfig{
+		Image: image,
+	}, exec)
 
-	out.Progress("Scaling down CMO...")
-	if err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 0); err != nil {
-		out.Error(fmt.Sprintf("Failed to scale down CMO: %v", err))
-		return err
+	for update := range exec.UpdateCh {
+		if err := handler.HandleUpdate(update); err != nil {
+			return err
+		}
 	}
-	out.Success(fmt.Sprintf("Scaled down %s", constants.CMODeployment))
-
-	out.Progress("Updating monitoring plugin image...")
-	if err := k8s.UpdateDeploymentImage(ctx, kubeClient, constants.PluginDeployment, constants.MonitoringNamespace, image); err != nil {
-		out.Error(fmt.Sprintf("Failed to update image: %v", err))
-		return err
-	}
-	out.Success(fmt.Sprintf("Updated %s image to %s", constants.PluginDeployment, image))
 
 	return nil
 }
@@ -94,32 +90,32 @@ func runUpdateMonitoringTUI(cmd *cobra.Command) error {
 		}
 	}
 
-	operations := []string{
+	operationsList := []string{
 		fmt.Sprintf("Scale down %s", constants.CMODeployment),
 		fmt.Sprintf("Update %s image to %s", constants.PluginDeployment, image),
 	}
 
-	model := tui.NewProgressModel("Updating Monitoring Plugin", operations)
+	model := tui.NewProgressModel("Updating Monitoring Plugin", operationsList)
 	program := tea.NewProgram(model)
 
+	exec := executor.NewExecutor()
+
+	go operations.UpdateMonitoring(ctx, kubeClient, operations.UpdateMonitoringConfig{
+		Image: image,
+	}, exec)
+
 	go func() {
-		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationInProgress})
+		for update := range exec.UpdateCh {
+			if update.Message != "" {
+				continue
+			}
 
-		err := k8s.ScaleDeployment(ctx, kubeClient, constants.CMODeployment, constants.MonitoringNamespace, 0)
-		if err != nil {
-			program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationFailed, Error: err})
-			return
+			program.Send(tui.OperationUpdateMsg{
+				Index:  update.Index,
+				Status: convertStatus(update.Status),
+				Error:  update.Error,
+			})
 		}
-		program.Send(tui.OperationUpdateMsg{Index: 0, Status: tui.OperationComplete})
-
-		program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationInProgress})
-
-		err = k8s.UpdateDeploymentImage(ctx, kubeClient, constants.PluginDeployment, constants.MonitoringNamespace, image)
-		if err != nil {
-			program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationFailed, Error: err})
-			return
-		}
-		program.Send(tui.OperationUpdateMsg{Index: 1, Status: tui.OperationComplete})
 	}()
 
 	finalModel, err := program.Run()
@@ -133,6 +129,21 @@ func runUpdateMonitoringTUI(cmd *cobra.Command) error {
 	}
 
 	return nil
+}
+
+func convertStatus(status executor.UpdateStatus) tui.OperationStatus {
+	switch status {
+	case executor.StatusPending:
+		return tui.OperationPending
+	case executor.StatusInProgress:
+		return tui.OperationInProgress
+	case executor.StatusComplete:
+		return tui.OperationComplete
+	case executor.StatusFailed:
+		return tui.OperationFailed
+	default:
+		return tui.OperationPending
+	}
 }
 
 func collectImageInput() (string, error) {

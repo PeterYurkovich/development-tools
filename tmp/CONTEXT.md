@@ -24,14 +24,18 @@
 - ✅ Migration plan documented
 - ✅ TODO breakdown created with atomic tasks
 - ✅ Team feedback incorporated
+- ✅ Foundation implementation (Go module, core packages)
+- ✅ TUI framework (Bubble Tea components, mode detection)
+- ✅ Business logic decoupling (channel-based architecture)
+- ✅ First commands implemented (update/cleanup monitoring)
 
 ### In Progress
-- 🔄 Foundation implementation (Go module setup, core packages)
+- 🔄 
 
 ### Not Started
-- ⏸️ Command implementations (monitoring, users, deploy, etc.)
-- ⏸️ TUI framework
-- ⏸️ Testing infrastructure
+- ⏸️ Deploy commands (COO, logging, tracing, dashboards)
+- ⏸️ Users commands (create, rbac)
+- ⏸️ Additional cleanup commands (COO, logging, tracing, ACM, all)
 
 ---
 
@@ -39,14 +43,17 @@
 
 **Framework & Libraries**
 - CLI Framework: **Cobra** (industry standard for k8s tooling)
-- TUI Library: **Bubble Tea** (for interactive mode)
+- TUI Library: **Bubble Tea** + **Huh** (for interactive mode and forms)
+- Logging: **charmbracelet/log** (structured logging with color support)
 - K8s Client: **controller-runtime directly** (no abstraction layer)
 - Config: **Type-safe Go structs** (no Viper/config files)
 
 **Execution Patterns**
 - Mode Detection: **Flags + TUI hybrid** (CLI when all flags present, TUI when missing)
-- State Management: **Execution Context pattern** (first param to functions, contains mode/client/version)
+- State Management: **Execution Context pattern** (context.Context with values)
+- Business Logic: **Channel-based decoupling** (business logic sends ProgressUpdate via channels)
 - Resource Structure: **Flat pkg/resources/** (except dashboards/ subdirectory)
+- Output Handling: **CLI general + TUI custom** (CLIHandler for all commands, command-specific TUI components)
 
 **Quality Philosophy**
 - Testing: **Minimal** (unit tests for critical code only, no CI/CD, no E2E)
@@ -86,24 +93,98 @@
 
 ## Critical Technical Details
 
+### Business Logic Decoupling Pattern
+
+**Architecture**: Business logic is decoupled from display logic using Go channels.
+
+**Structure**:
+```
+Business Logic (pkg/operations/)
+    ↓ sends ProgressUpdate via channel
+    ├─→ CLI Handler (pkg/output/cli.go) - displays with logger
+    └─→ TUI Handler (command-specific) - forwards to Bubble Tea
+```
+
+**Key Components**:
+
+1. **Business Logic** (`pkg/operations/{command}.go`):
+```go
+const (
+    StepOne = iota  // Enumerate steps
+    StepTwo
+)
+
+func ExecuteCommand(ctx context.Context, client client.Client, 
+                   config CommandConfig, exec *executor.Executor) error {
+    defer exec.Close()
+    
+    exec.SendUpdate(StepOne, executor.StatusInProgress, "Step one")
+    exec.SendLog(StepOne, "Detailed progress message")
+    err := doWork(...)
+    if err != nil {
+        exec.SendUpdateWithError(StepOne, executor.StatusFailed, "Step one", err)
+        return err
+    }
+    exec.SendUpdate(StepOne, executor.StatusComplete, "Step one")
+    
+    return nil
+}
+```
+
+2. **CLI Mode** (uses general handler):
+```go
+handler := output.NewCLIHandler()
+exec := executor.NewExecutor()
+
+go operations.ExecuteCommand(ctx, client, config, exec)
+
+for update := range exec.UpdateCh {
+    if err := handler.HandleUpdate(update); err != nil {
+        return err
+    }
+}
+```
+
+3. **TUI Mode** (uses command-specific components):
+```go
+model := tui.NewProgressModel("Title", operations)
+program := tea.NewProgram(model)
+exec := executor.NewExecutor()
+
+go operations.ExecuteCommand(ctx, client, config, exec)
+
+go func() {
+    for update := range exec.UpdateCh {
+        if update.Message != "" {
+            continue  // TUI ignores log messages
+        }
+        program.Send(tui.OperationUpdateMsg{...})
+    }
+}()
+
+program.Run()
+```
+
+**Benefits**:
+- ✅ Business logic written once (no duplication)
+- ✅ CLI and TUI guaranteed consistent
+- ✅ Easy to test (no display mocking)
+- ✅ Scalable to many commands
+
+**See**: `tmp/tasks/business-logic-decoupling/` for complete documentation
+
 ### Execution Context Pattern
-Every operation receives `ExecutionContext` as first parameter:
+
+Context values pattern for shared state:
 
 ```go
-type ExecutionContext struct {
-    Context context.Context  // Go context for cancellation
-    Client  client.Client    // Kubernetes client
-    Version *VersionInfo     // Cluster version info
-    IsTUI   bool            // Running in TUI mode vs CLI mode
-}
+// Set values in context
+ctx = execctx.WithClient(ctx, kubeClient)
+ctx = execctx.WithTUI(ctx, isTUI)
 
-// Usage
-func deployLogging(execCtx *ExecutionContext, cfg LoggingConfig) error {
-    if execCtx.IsTUI {
-        return deployLoggingTUI(execCtx, cfg)
-    }
-    return deployLoggingCLI(execCtx, cfg)
-}
+// Retrieve values from context
+client, err := execctx.GetClient(ctx)
+isTUI := execctx.IsTUI(ctx)
 ```
 
 ### Version-Specific CRDs
@@ -130,17 +211,21 @@ obstool/
 │   ├── update/              # Update commands (scale up, update versions)
 │   └── users/               # User management
 ├── pkg/
-│   ├── context/             # ExecutionContext definition
+│   ├── context/             # ExecutionContext (context.WithValue pattern)
 │   ├── k8s/                 # Kubernetes client
 │   ├── config/              # Type-safe config structs
+│   ├── executor/            # Channel-based progress updates
+│   ├── operations/          # Business logic (decoupled from display)
 │   ├── resources/           # CRD definitions (flat)
 │   │   └── dashboards/      # Dashboard definitions (30+ files)
 │   ├── operators/           # OLM utilities, COO deployment
 │   ├── storage/             # Storage provider interface
 │   ├── users/               # User/RBAC utilities
 │   ├── tui/                 # Bubble Tea TUI components
-│   └── output/              # Mode-aware output handling
+│   ├── output/              # CLI output handler
+│   └── mode/                # Mode detection utilities
 └── internal/
+    ├── constants/           # Shared constants
     └── version/             # Version detection & comparison
 ```
 
@@ -288,5 +373,5 @@ If you encounter ambiguity:
 
 ---
 
-**Last Updated**: 2026-06-10  
-**Document Version**: 1.2 (added code style guidelines)
+**Last Updated**: 2026-06-18  
+**Document Version**: 1.3 (added business logic decoupling pattern, updated current status)

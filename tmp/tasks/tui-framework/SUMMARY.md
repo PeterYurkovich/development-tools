@@ -123,7 +123,6 @@ Command Invoked
 - ✅ Created `example_usage.md` with TUI patterns
 - ✅ Created `pkg/mode/README.md` with mode logic
 - ✅ Tracked all changes in task documentation
-- ✅ Updated PROGRESS.md and TODO.md
 
 ---
 
