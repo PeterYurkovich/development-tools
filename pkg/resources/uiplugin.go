@@ -4,61 +4,69 @@ import (
 	"context"
 	"fmt"
 
+	uipluginv1alpha1 "github.com/rhobs/observability-operator/pkg/apis/uiplugin/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/observability-ui/development-tools/internal/constants"
 )
 
 type LoggingUIPluginConfig struct {
 	Name          string
 	LokiStackName string
-	LogsLimit     int
+	LogsLimit     int32
 	Timeout       string
 	Schema        string
 }
 
-// CreateLoggingUIPlugin creates a Logging UIPlugin CR
 func CreateLoggingUIPlugin(ctx context.Context, kubeClient client.Client, config LoggingUIPluginConfig) error {
-	plugin := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "observability.openshift.io/v1alpha1",
-			"kind":       "UIPlugin",
-			"metadata": map[string]interface{}{
-				"name": config.Name,
-			},
-			"spec": map[string]interface{}{
-				"type": "Logging",
-				"logging": map[string]interface{}{
-					"lokiStack": map[string]interface{}{
-						"name": config.LokiStackName,
-					},
-					"logsLimit":             config.LogsLimit,
-					"timeout":               config.Timeout,
-					"schema":                config.Schema,
-					"showTimezoneSelector":  true,
+	plugin := &uipluginv1alpha1.UIPlugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: config.Name,
+		},
+		Spec: uipluginv1alpha1.UIPluginSpec{
+			Type: uipluginv1alpha1.TypeLogging,
+			Logging: &uipluginv1alpha1.LoggingConfig{
+				LokiStack: &uipluginv1alpha1.LokiStackReference{
+					Name: config.LokiStackName,
 				},
+				LogsLimit:            config.LogsLimit,
+				Timeout:              config.Timeout,
+				Schema:               config.Schema,
+				ShowTimezoneSelector: true,
 			},
 		},
 	}
 
 	err := kubeClient.Create(ctx, plugin)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("failed to create UIPlugin: %w", err)
+		return fmt.Errorf("failed to create Logging UIPlugin: %w", err)
 	}
 	return nil
 }
 
-// GetUIPlugin retrieves a UIPlugin CR
-func GetUIPlugin(ctx context.Context, kubeClient client.Client, name string) (*unstructured.Unstructured, error) {
-	plugin := &unstructured.Unstructured{}
-	plugin.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "observability.openshift.io",
-		Version: "v1alpha1",
-		Kind:    "UIPlugin",
-	})
+func CreateTracingUIPlugin(ctx context.Context, kubeClient client.Client) error {
+	plugin := &uipluginv1alpha1.UIPlugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: constants.TracingUIPluginName,
+		},
+		Spec: uipluginv1alpha1.UIPluginSpec{
+			Type: uipluginv1alpha1.TypeDistributedTracing,
+		},
+	}
 
+	err := kubeClient.Create(ctx, plugin)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create Tracing UIPlugin: %w", err)
+	}
+	return nil
+}
+
+func GetUIPlugin(ctx context.Context, kubeClient client.Client, name string) (*uipluginv1alpha1.UIPlugin, error) {
+	plugin := &uipluginv1alpha1.UIPlugin{}
 	key := client.ObjectKey{Name: name}
+
 	err := kubeClient.Get(ctx, key, plugin)
 	if err != nil {
 		return nil, err

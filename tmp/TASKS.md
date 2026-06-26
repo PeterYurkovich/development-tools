@@ -354,43 +354,50 @@
   - [x] Settings: logsLimit=50, timeout=30s, schema=select, showTimezoneSelector=true
 
 ### Deploy Tracing
-- [ ] **Implement deploy tracing command**
-  - [ ] Create `cmd/deploy/tracing.go`
-  - [ ] Add `--size` flag
-  - [ ] Add `--namespace` flag
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy tracing command**
+  - [x] Create `cmd/deploy/tracing.go`
+  - [x] Add `--tempo-channel`, `--otel-channel`, `--storage-class` flags
+  - [x] Add `--deploy-minio`, `--deploy-tempostack`, `--deploy-collectors`, `--deploy-signals`, `--deploy-uiplugin`, `--enable-user-workload-monitoring` flags
+  - [x] CLI and TUI modes with dynamic operations list
+  - Blocked by: Implement deploy command group ✅
+  - Implementation: [tasks/deploy-tracing/implementation.md](./tasks/deploy-tracing/implementation.md)
 
-- [ ] **Deploy tracing signal generators**
-  - [ ] Create `cmd/deploy/signals-tracing.go` or add to tracing.go
-  - [ ] Deploy hotrod application (tracing-app-hotrod namespace)
-    - [ ] Deployment with jaegertracing/example-hotrod:1.46 image
-    - [ ] Service exposing port 8080
-    - [ ] Route for external access
-    - [ ] Configure OTLP exporter to user-collector.openshift-tracing:4318
-  - [ ] Deploy k6-tracing (tracing-app-k6 namespace)
-    - [ ] Deployment with ghcr.io/grafana/xk6-client-tracing:v0.0.5
-    - [ ] Connect to user-collector.openshift-tracing:4317
-  - [ ] Deploy telemetrygen (tracing-app-telemetrygen namespace)
-    - [ ] Container 1: good_service (rate=3, child-spans=2)
-    - [ ] Container 2: faulty_service (rate=2, child-spans=1, status-code=Error)
-    - [ ] Both send to user-collector.openshift-tracing:4317
-  - Blocked by: Deploy tracing command
+- [x] **Deploy tracing signal generators**
+  - [x] Added to `tracing.go` via `--deploy-signals` flag
+  - [x] Deploy hotrod application (tracing-app-hotrod namespace)
+    - [x] Deployment with jaegertracing/example-hotrod:1.46 image
+    - [x] Service exposing port 8080
+    - [x] Route for external access
+    - [x] Configure OTLP exporter to user-collector.openshift-tracing:4318
+  - [x] Deploy k6-tracing (tracing-app-k6 namespace)
+    - [x] Deployment with ghcr.io/grafana/xk6-client-tracing:v0.0.5
+    - [x] Connect to user-collector.openshift-tracing:4317
+  - [x] Deploy telemetrygen (tracing-app-telemetrygen namespace)
+    - [x] Container 1: good_service (rate=3, child-spans=2)
+    - [x] Container 2: faulty_service (rate=2, child-spans=1, status-code=Error)
+    - [x] Both send to user-collector.openshift-tracing:4317
+  - Blocked by: Deploy tracing command ✅
 
-- [ ] **Implement TempoStack deployment**
-  - [ ] Create `pkg/resources/tempostack.go`
-  - [ ] Function to create TempoStack CR
-  - [ ] Configure with MinIO backend
-  - Blocked by: Implement deploy tracing command
+- [x] **Implement TempoStack deployment**
+  - [x] Create `pkg/resources/tempostack.go`
+  - [x] Typed `tempov1alpha1.TempoStack` CR (no unstructured)
+  - [x] Tenants (platform + user), gateway, JaegerQuery with monitorTab, self-observability tracing
+  - [x] Configure with MinIO S3 backend
+  - Blocked by: Implement deploy tracing command ✅
 
-- [ ] **Implement OpenTelemetry Collector deployment**
-  - [ ] Create `pkg/resources/otel.go`
-  - [ ] Create platform and user collectors
-  - Blocked by: Implement TempoStack deployment
+- [x] **Implement OpenTelemetry Collector deployment**
+  - [x] Create `pkg/resources/otel.go`
+  - [x] Typed `otelv1beta1.OpenTelemetryCollector` CR (no unstructured)
+  - [x] Platform collector (X-Scope-OrgID: platform) + user collector (X-Scope-OrgID: user)
+  - [x] bearertokenauth, otlp+jaeger receivers, k8sattributes, spanmetrics connector, prometheus exporter
+  - [x] Trace reader/writer RBAC via `pkg/resources/tracing_rbac.go`
+  - Blocked by: Implement TempoStack deployment ✅
 
-- [ ] **Implement Tracing UIPlugin deployment**
-  - [ ] Update `pkg/resources/uiplugin.go`
-  - [ ] Add UIPlugin CR for tracing
-  - Blocked by: Implement OpenTelemetry Collector deployment
+- [x] **Implement Tracing UIPlugin deployment**
+  - [x] Update `pkg/resources/uiplugin.go`
+  - [x] Add `CreateTracingUIPlugin` — typed `uipluginv1alpha1.UIPlugin` with `TypeDistributedTracing`
+  - [x] UIPlugin name: `distributed-tracing` (corrected from `tracing`)
+  - Blocked by: Implement OpenTelemetry Collector deployment ✅
 
 ### Deploy Dashboards
 - [ ] **Implement deploy dashboards command**

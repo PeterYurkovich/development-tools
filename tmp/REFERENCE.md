@@ -11,9 +11,9 @@
 
 | CRD | Module | Version |
 |-----|--------|---------|
-| UIPlugin | `github.com/rhobs/observability-operator/pkg/apis/ui/v1alpha1` | v1alpha1 |
-| LokiStack | `github.com/grafana/loki/operator/apis/loki/v1` | v1 |
-| TempoStack | `github.com/grafana/tempo-operator/apis/tempo/v1alpha1` | v1alpha1 |
+| UIPlugin | `github.com/rhobs/observability-operator/pkg/apis/uiplugin/v1alpha1` | v1alpha1 |
+| LokiStack | `github.com/grafana/loki/operator/api/loki/v1` | v1 |
+| TempoStack | `github.com/grafana/tempo-operator/api/tempo/v1alpha1` | v1alpha1 |
 | OpenTelemetryCollector | `github.com/open-telemetry/opentelemetry-operator/apis/v1beta1` | v1beta1 |
 | FlowCollector | `github.com/netobserv/network-observability-operator/apis/flowcollector/v1beta2` | v1beta2 |
 | MultiClusterObservability | `github.com/stolostron/multicluster-observability-operator/apis/observability/v1beta2` | v1beta2 |
@@ -24,8 +24,8 @@
 
 **Imports**:
 ```go
-import lokiv1 "github.com/grafana/loki/operator/apis/loki/v1"
-import tempov1alpha1 "github.com/grafana/tempo-operator/apis/tempo/v1alpha1"
+import lokiv1 "github.com/grafana/loki/operator/api/loki/v1"
+import tempov1alpha1 "github.com/grafana/tempo-operator/api/tempo/v1alpha1"
 import otelv1beta1 "github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
 import flowsv1beta2 "github.com/netobserv/network-observability-operator/apis/flowcollector/v1beta2"
 import monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -139,8 +139,8 @@ if isVersionAheadOrEqual(version, "4.19") {
 
 **Observability**:
 - Prometheus → `prometheus-operator/prometheus-operator/pkg/apis/monitoring`
-- Loki → `grafana/loki/operator/apis/loki/v1`
-- Tempo → `grafana/tempo-operator/apis/tempo/v1alpha1`
+- Loki → `grafana/loki/operator/api/loki/v1`
+- Tempo → `grafana/tempo-operator/api/tempo/v1alpha1`
 - OTel → `open-telemetry/opentelemetry-operator/apis/v1beta1`
 - NetObserv → `netobserv/network-observability-operator/apis`
 - Perses → `perses/perses/pkg/apis/v1alpha1`

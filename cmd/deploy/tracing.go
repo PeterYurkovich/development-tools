@@ -26,9 +26,22 @@ Installs:
   - opentelemetry-product operator in openshift-opentelemetry-operator namespace
   - openshift-tracing namespace for TempoStack and collectors
 
+Optional components (enabled via flags or TUI):
+  - MinIO storage for TempoStack backend
+  - TempoStack CR (requires MinIO)
+  - OpenTelemetry Collectors (platform + user, requires TempoStack)
+  - Signal generators (hotrod, k6-tracing, telemetrygen)
+  - Distributed Tracing UIPlugin
+
 Both operators are installed from the redhat-operators catalog source.`,
-	Example: `  # Deploy with default channels
+	Example: `  # Deploy operators only (interactive TUI for optional components)
   obstool deploy tracing
+
+  # Deploy full tracing stack non-interactively
+  obstool deploy tracing --deploy-minio --deploy-tempostack --deploy-collectors --deploy-uiplugin
+
+  # Deploy everything including signal generators
+  obstool deploy tracing --deploy-minio --deploy-tempostack --deploy-collectors --deploy-signals --deploy-uiplugin
 
   # Deploy with specific channels
   obstool deploy tracing --tempo-channel=stable --otel-channel=stable`,
@@ -40,7 +53,11 @@ func init() {
 	tracingCmd.Flags().String("otel-channel", "stable", "OpenTelemetry Operator subscription channel")
 	tracingCmd.Flags().String("storage-class", "", "Storage class for MinIO (auto-detect if empty)")
 	tracingCmd.Flags().Bool("deploy-minio", false, "Deploy MinIO for TempoStack storage")
-	tracingCmd.Flags().Bool("deploy-tempostack", false, "Deploy TempoStack CR")
+	tracingCmd.Flags().Bool("deploy-tempostack", false, "Deploy TempoStack CR (requires --deploy-minio)")
+	tracingCmd.Flags().Bool("enable-user-workload-monitoring", false, "Enable user workload monitoring via cluster-monitoring-config")
+	tracingCmd.Flags().Bool("deploy-collectors", false, "Deploy platform and user OpenTelemetry Collectors (requires --deploy-tempostack)")
+	tracingCmd.Flags().Bool("deploy-signals", false, "Deploy hotrod, k6-tracing, and telemetrygen signal generators")
+	tracingCmd.Flags().Bool("deploy-uiplugin", false, "Deploy the Distributed Tracing UIPlugin")
 
 	DeployCmd.AddCommand(tracingCmd)
 }
@@ -59,19 +76,7 @@ func runDeployTracing(cmd *cobra.Command, args []string) error {
 }
 
 func runDeployTracingCLI(cmd *cobra.Command) error {
-	tempoChannel, _ := cmd.Flags().GetString("tempo-channel")
-	otelChannel, _ := cmd.Flags().GetString("otel-channel")
-	storageClass, _ := cmd.Flags().GetString("storage-class")
-	deployMinIO, _ := cmd.Flags().GetBool("deploy-minio")
-	deployTempoStack, _ := cmd.Flags().GetBool("deploy-tempostack")
-
-	config := operations.DeployTracingConfig{
-		TempoChannel:     tempoChannel,
-		OTelChannel:      otelChannel,
-		StorageClassName: storageClass,
-		DeployMinIO:      deployMinIO,
-		DeployTempoStack: deployTempoStack,
-	}
+	config := tracingConfigFromFlags(cmd)
 
 	ctx := cmd.Context()
 	ctx = execctx.WithTUI(ctx, false)
@@ -104,41 +109,12 @@ func runDeployTracingTUI(cmd *cobra.Command) error {
 		return err
 	}
 
-	tempoChannel, otelChannel, storageClass, deployMinIO, deployTempoStack, err := collectTracingInput(cmd)
+	config, err := collectTracingInput(cmd)
 	if err != nil {
 		return err
 	}
 
-	config := operations.DeployTracingConfig{
-		TempoChannel:     tempoChannel,
-		OTelChannel:      otelChannel,
-		StorageClassName: storageClass,
-		DeployMinIO:      deployMinIO,
-		DeployTempoStack: deployTempoStack,
-	}
-
-	operationsList := []string{
-		fmt.Sprintf("Create namespace %s", constants.TracingNamespace),
-		fmt.Sprintf("Create namespace %s", constants.TempoOperatorNS),
-		"Create Tempo OperatorGroup",
-		"Create Subscription for tempo-product",
-		fmt.Sprintf("Create namespace %s", constants.OTelOperatorNS),
-		"Create OpenTelemetry OperatorGroup",
-		"Create Subscription for opentelemetry-product",
-		"Wait for tempo-product operator to be ready",
-		"Wait for opentelemetry-product operator to be ready",
-	}
-
-	if deployMinIO {
-		operationsList = append(operationsList, "Deploy MinIO storage")
-	}
-
-	if deployTempoStack {
-		operationsList = append(operationsList,
-			"Deploy TempoStack",
-			"Wait for TempoStack to be ready",
-		)
-	}
+	operationsList := buildTracingOperationsList(config)
 
 	model := tui.NewProgressModel("Deploying Distributed Tracing Stack", operationsList)
 	program := tea.NewProgram(model)
@@ -166,22 +142,70 @@ func runDeployTracingTUI(cmd *cobra.Command) error {
 		return err
 	}
 
-	m := finalModel.(tui.ProgressModel)
-	if m.Error() != nil {
-		return m.Error()
+	progressModel := finalModel.(tui.ProgressModel)
+	if progressModel.Error() != nil {
+		return progressModel.Error()
 	}
 
 	return nil
 }
 
-func collectTracingInput(cmd *cobra.Command) (string, string, string, bool, bool, error) {
+func collectTracingInput(cmd *cobra.Command) (operations.DeployTracingConfig, error) {
+	config := tracingConfigFromFlags(cmd)
+
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Tempo Operator Subscription Channel").
+				Value(&config.TempoChannel).
+				Placeholder("stable"),
+			huh.NewInput().
+				Title("OpenTelemetry Operator Subscription Channel").
+				Value(&config.OTelChannel).
+				Placeholder("stable"),
+			huh.NewInput().
+				Title("Storage Class (leave empty for auto-detect)").
+				Value(&config.StorageClassName).
+				Placeholder("gp3-csi"),
+			huh.NewConfirm().
+				Title("Deploy MinIO for TempoStack storage?").
+				Value(&config.DeployMinIO),
+			huh.NewConfirm().
+				Title("Deploy TempoStack CR?").
+				Value(&config.DeployTempoStack),
+			huh.NewConfirm().
+				Title("Enable user workload monitoring?").
+				Value(&config.EnableUserWorkloadMonitoring),
+			huh.NewConfirm().
+				Title("Deploy OpenTelemetry Collectors (platform + user)?").
+				Value(&config.DeployCollectors),
+			huh.NewConfirm().
+				Title("Deploy signal generator apps (hotrod, k6-tracing, telemetrygen)?").
+				Value(&config.DeploySignals),
+			huh.NewConfirm().
+				Title("Deploy Distributed Tracing UIPlugin?").
+				Value(&config.DeployUIPlugin),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return operations.DeployTracingConfig{}, err
+	}
+
+	return config, nil
+}
+
+func tracingConfigFromFlags(cmd *cobra.Command) operations.DeployTracingConfig {
 	tempoChannel, _ := cmd.Flags().GetString("tempo-channel")
 	otelChannel, _ := cmd.Flags().GetString("otel-channel")
 	storageClass, _ := cmd.Flags().GetString("storage-class")
 	deployMinIO, _ := cmd.Flags().GetBool("deploy-minio")
 	deployTempoStack, _ := cmd.Flags().GetBool("deploy-tempostack")
+	enableUserWorkload, _ := cmd.Flags().GetBool("enable-user-workload-monitoring")
+	deployCollectors, _ := cmd.Flags().GetBool("deploy-collectors")
+	deploySignals, _ := cmd.Flags().GetBool("deploy-signals")
+	deployUIPlugin, _ := cmd.Flags().GetBool("deploy-uiplugin")
 
-	// Set defaults if not provided
 	if tempoChannel == "" {
 		tempoChannel = "stable"
 	}
@@ -189,32 +213,67 @@ func collectTracingInput(cmd *cobra.Command) (string, string, string, bool, bool
 		otelChannel = "stable"
 	}
 
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Tempo Operator Subscription Channel").
-				Value(&tempoChannel).
-				Placeholder("stable"),
-			huh.NewInput().
-				Title("OpenTelemetry Operator Subscription Channel").
-				Value(&otelChannel).
-				Placeholder("stable"),
-			huh.NewInput().
-				Title("Storage Class (leave empty for auto-detect)").
-				Value(&storageClass).
-				Placeholder("gp3-csi"),
-			huh.NewConfirm().
-				Title("Deploy MinIO for storage?").
-				Value(&deployMinIO),
-			huh.NewConfirm().
-				Title("Deploy TempoStack CR?").
-				Value(&deployTempoStack),
-		),
-	)
+	return operations.DeployTracingConfig{
+		TempoChannel:                tempoChannel,
+		OTelChannel:                 otelChannel,
+		StorageClassName:            storageClass,
+		DeployMinIO:                 deployMinIO,
+		DeployTempoStack:            deployTempoStack,
+		EnableUserWorkloadMonitoring: enableUserWorkload,
+		DeployCollectors:            deployCollectors,
+		DeploySignals:               deploySignals,
+		DeployUIPlugin:              deployUIPlugin,
+	}
+}
 
-	if err := form.Run(); err != nil {
-		return "", "", "", false, false, err
+func buildTracingOperationsList(config operations.DeployTracingConfig) []string {
+	operationsList := []string{
+		fmt.Sprintf("Create namespace %s", constants.TracingNamespace),
+		fmt.Sprintf("Create namespace %s", constants.TempoOperatorNS),
+		"Create Tempo OperatorGroup",
+		"Create Subscription for tempo-product",
+		fmt.Sprintf("Create namespace %s", constants.OTelOperatorNS),
+		"Create OpenTelemetry OperatorGroup",
+		"Create Subscription for opentelemetry-product",
+		"Wait for tempo-product operator to be ready",
+		"Wait for opentelemetry-product operator to be ready",
 	}
 
-	return tempoChannel, otelChannel, storageClass, deployMinIO, deployTempoStack, nil
+	if config.DeployMinIO {
+		operationsList = append(operationsList, "Deploy MinIO storage")
+	}
+
+	if config.DeployTempoStack {
+		operationsList = append(operationsList,
+			"Deploy TempoStack",
+			"Wait for TempoStack to be ready",
+		)
+	}
+
+	if config.EnableUserWorkloadMonitoring {
+		operationsList = append(operationsList, "Enable user workload monitoring")
+	}
+
+	if config.DeployTempoStack {
+		operationsList = append(operationsList, "Create trace reader RBAC")
+	}
+
+	if config.DeployCollectors {
+		operationsList = append(operationsList,
+			"Deploy platform OpenTelemetry Collector",
+			"Wait for platform-collector to be ready",
+			"Deploy user OpenTelemetry Collector",
+			"Wait for user-collector to be ready",
+		)
+	}
+
+	if config.DeploySignals {
+		operationsList = append(operationsList, "Deploy signal generator apps")
+	}
+
+	if config.DeployUIPlugin {
+		operationsList = append(operationsList, "Deploy Distributed Tracing UIPlugin")
+	}
+
+	return operationsList
 }
