@@ -457,21 +457,28 @@
     - [x] MCH uses `unstructured.Unstructured` — no importable typed module exists without path conflicts; upstream MCO itself uses unstructured for MCH
     - Blocked by: Implement deploy acm command ✅
 
-### Deploy Korrel8r
-- [ ] **Implement deploy korrel8r command**
-  - [ ] Create `cmd/deploy/korrel8r.go`
-  - [ ] Deploy logging, network observability
-  - Blocked by: Implement deploy logging command
+### Deploy Troubleshooting Panel
+- [x] **Implement deploy troubleshooting-panel command**
+  - [x] Create `cmd/deploy/troubleshooting_panel.go`
+  - [x] Flags: `--netobserv-channel`, `--storage-class`, `--deploy-flowcollector`, `--deploy-uiplugin`
+  - [x] `--deploy-flowcollector` triggers MinIO + LokiStack + FlowCollector automatically
+  - [x] Assumes `deploy logging` already ran (loki/logging operators pre-installed)
+  - Blocked by: Implement deploy logging command ✅
+  - Implementation: [tasks/deploy-troubleshooting-panel/plan.md](./tasks/deploy-troubleshooting-panel/plan.md)
 
-  - [ ] **Implement FlowCollector deployment**
-    - [ ] Create `pkg/resources/flowcollector.go`
-    - [ ] Create FlowCollector CR for network observability
-    - Blocked by: Implement deploy korrel8r command
+  - [x] **Implement FlowCollector deployment**
+    - [x] Create `pkg/resources/netobserv.go` — FlowCollector (unstructured), netobserv LokiStack secret, WaitForNetObservPlugin
+    - [x] Note: FlowCollector uses `unstructured.Unstructured` — typed module webhook conflicts with controller-runtime v0.24.1
+    - Blocked by: Implement deploy troubleshooting-panel command ✅
 
-  - [ ] **Implement dedicated LokiStack for NetObserv**
-    - [ ] Update `pkg/resources/lokistack.go`
-    - [ ] Support multiple LokiStack instances
-    - Blocked by: Implement FlowCollector deployment
+  - [x] **Implement dedicated LokiStack for NetObserv**
+    - [x] Update `pkg/resources/lokistack.go` — add `TenantMode lokiv1.ModeType` to `LokiStackConfig`; defaults to `OpenshiftLogging` when empty
+    - [x] Create `pkg/operators/netobserv/operatorhub.go`
+    - [x] Create `internal/constants/netobserv.go`
+    - [x] Create `pkg/operations/troubleshooting_panel.go` — 11-step executor
+    - [x] Add `CreateTroubleshootingPanelUIPlugin()` to `pkg/resources/uiplugin.go`
+    - [x] MinIO in dedicated `minio` namespace; secret in `netobserv` uses `bucketnames` (plural, matching LokiStack operator expectation)
+    - Blocked by: Implement FlowCollector deployment ✅
 
 ### Deploy All
 - [ ] **Implement deploy all command**

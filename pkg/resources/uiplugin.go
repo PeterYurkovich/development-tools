@@ -106,6 +106,23 @@ func CreateMonitoringUIPlugin(ctx context.Context, kubeClient client.Client, con
 	return nil
 }
 
+func CreateTroubleshootingPanelUIPlugin(ctx context.Context, kubeClient client.Client) error {
+	plugin := &uipluginv1alpha1.UIPlugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: constants.TroubleshootingPanelUIPluginName,
+		},
+		Spec: uipluginv1alpha1.UIPluginSpec{
+			Type: uipluginv1alpha1.TypeTroubleshootingPanel,
+		},
+	}
+
+	err := kubeClient.Create(ctx, plugin)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create TroubleshootingPanel UIPlugin: %w", err)
+	}
+	return nil
+}
+
 func GetUIPlugin(ctx context.Context, kubeClient client.Client, name string) (*uipluginv1alpha1.UIPlugin, error) {
 	plugin := &uipluginv1alpha1.UIPlugin{}
 	key := client.ObjectKey{Name: name}

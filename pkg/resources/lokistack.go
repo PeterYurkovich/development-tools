@@ -18,6 +18,7 @@ type LokiStackConfig struct {
 	StorageClassName string
 	SecretName       string
 	SourceNamespace  string
+	TenantMode       lokiv1.ModeType // defaults to OpenshiftLogging when empty
 }
 
 func CopySecretToNamespace(ctx context.Context, kubeClient client.Client, secretName, sourceNS, targetNS string) error {
@@ -71,7 +72,7 @@ func CreateLokiStack(ctx context.Context, kubeClient client.Client, config LokiS
 			},
 			StorageClassName: config.StorageClassName,
 			Tenants: &lokiv1.TenantsSpec{
-				Mode: lokiv1.OpenshiftLogging,
+				Mode: tenantMode(config.TenantMode),
 			},
 		},
 	}
@@ -81,6 +82,13 @@ func CreateLokiStack(ctx context.Context, kubeClient client.Client, config LokiS
 		return fmt.Errorf("failed to create LokiStack: %w", err)
 	}
 	return nil
+}
+
+func tenantMode(mode lokiv1.ModeType) lokiv1.ModeType {
+	if mode == "" {
+		return lokiv1.OpenshiftLogging
+	}
+	return mode
 }
 
 func GetLokiStack(ctx context.Context, kubeClient client.Client, name, namespace string) (*lokiv1.LokiStack, error) {
