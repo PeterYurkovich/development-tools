@@ -401,26 +401,29 @@
   - Blocked by: Implement OpenTelemetry Collector deployment ✅
 
 ### Deploy Dashboards
-- [ ] **Implement deploy dashboards command**
-  - [ ] Create `cmd/deploy/dashboards.go`
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy dashboards command**
+  - [x] Create `cmd/deploy/dashboards.go`
+  - Blocked by: Implement deploy command group ✅
+  - Implementation: [tasks/deploy-dashboards/plan.md](./tasks/deploy-dashboards/plan.md)
 
-  - [ ] **Implement Perses datasource deployment**
-    - [ ] Create `pkg/resources/perses.go`
-    - [ ] Create PersesDatasource CRs
-    - [ ] Create PersesGlobalDatasource CRs
-    - Blocked by: Implement deploy dashboards command
+  - [x] **Implement Perses datasource deployment**
+    - [x] Create `pkg/resources/perses.go`
+    - [x] Create PersesGlobalDatasource CRs (thanos, loki, tempo)
+    - [x] Using typed structs from rhobs/perses-operator v1alpha2
+    - Blocked by: Implement deploy dashboards command ✅
 
-  - [ ] **Implement dashboard definitions**
-    - [ ] Create `pkg/resources/dashboards/` directory
-    - [ ] Create individual dashboard files (node-exporter.go, prometheus.go, etc.)
-    - [ ] 30+ dashboard definitions
-    - Blocked by: Implement Perses datasource deployment
+  - [x] **Implement dashboard definitions (Dashboards as Code)**
+    - [x] Create `pkg/resources/dashboards/` directory with helpers.go
+    - [x] Create `prometheus_overview.go` — Perses Go SDK (10 panels)
+    - [x] Create `thanos_compact.go` — Perses Go SDK (14 panels)
+    - [x] Create `node_exporter.go` — Perses Go SDK (15 key panels: CPU/memory/disk/network)
+    - [x] Create `acm.go` — Perses Go SDK, team-specific (4 panels)
+    - [x] Create `sample.go` — Perses Go SDK, team-specific (12 panels)
+    - [x] Bridge: Go SDK spec → PersesDashboard CR via JSON round-trip
+    - Blocked by: Implement Perses datasource deployment ✅
 
-  - [ ] **Implement Dashboards UIPlugin deployment**
-    - [ ] Update `pkg/resources/uiplugin.go`
-    - [ ] Add UIPlugin CR for dashboards
-    - Blocked by: Implement dashboard definitions
+  - [x] **Implement Dashboards UIPlugin deployment**
+    - Note: Covered by monitoring-plugin tasks — not implemented here
 
 ### Deploy Monitoring
 - [ ] **Implement deploy monitoring command**

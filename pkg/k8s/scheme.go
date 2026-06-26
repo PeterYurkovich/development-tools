@@ -17,6 +17,7 @@ import (
 	tempov1alpha1 "github.com/grafana/tempo-operator/api/tempo/v1alpha1"
 	otelv1beta1 "github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
 	uipluginv1alpha1 "github.com/rhobs/observability-operator/pkg/apis/uiplugin/v1alpha1"
+	persesv1alpha2 "github.com/rhobs/perses-operator/api/v1alpha2"
 )
 
 func registerSchemes(scheme *runtime.Scheme) error {
@@ -52,6 +53,9 @@ func registerSchemes(scheme *runtime.Scheme) error {
 	}
 	if err := uipluginv1alpha1.AddToScheme(scheme); err != nil {
 		return fmt.Errorf("failed to register uiplugin/v1alpha1 scheme: %w", err)
+	}
+	if err := persesv1alpha2.AddToScheme(scheme); err != nil {
+		return fmt.Errorf("failed to register perses-operator/v1alpha2 scheme: %w", err)
 	}
 	return nil
 }
