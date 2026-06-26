@@ -63,6 +63,49 @@ func CreateTracingUIPlugin(ctx context.Context, kubeClient client.Client) error 
 	return nil
 }
 
+type MonitoringUIPluginConfig struct {
+	EnablePerses                bool
+	EnableACM                   bool
+	EnableClusterHealthAnalyzer bool
+}
+
+func CreateMonitoringUIPlugin(ctx context.Context, kubeClient client.Client, config MonitoringUIPluginConfig) error {
+	spec := uipluginv1alpha1.UIPluginSpec{
+		Type: uipluginv1alpha1.TypeMonitoring,
+	}
+
+	if config.EnablePerses || config.EnableACM || config.EnableClusterHealthAnalyzer {
+		spec.Monitoring = &uipluginv1alpha1.MonitoringConfig{}
+
+		if config.EnablePerses {
+			spec.Monitoring.Perses = &uipluginv1alpha1.PersesReference{Enabled: true}
+		}
+		if config.EnableACM {
+			spec.Monitoring.ACM = &uipluginv1alpha1.AdvancedClusterManagementReference{
+				Enabled: true,
+				Alertmanager:  uipluginv1alpha1.AlertmanagerReference{Url: constants.ACMAlertmanagerURL},
+				ThanosQuerier: uipluginv1alpha1.ThanosQuerierReference{Url: constants.ACMThanosQuerierURL},
+			}
+		}
+		if config.EnableClusterHealthAnalyzer {
+			spec.Monitoring.ClusterHealthAnalyzer = &uipluginv1alpha1.ClusterHealthAnalyzerReference{Enabled: true}
+		}
+	}
+
+	plugin := &uipluginv1alpha1.UIPlugin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: constants.MonitoringUIPluginName,
+		},
+		Spec: spec,
+	}
+
+	err := kubeClient.Create(ctx, plugin)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create Monitoring UIPlugin: %w", err)
+	}
+	return nil
+}
+
 func GetUIPlugin(ctx context.Context, kubeClient client.Client, name string) (*uipluginv1alpha1.UIPlugin, error) {
 	plugin := &uipluginv1alpha1.UIPlugin{}
 	key := client.ObjectKey{Name: name}

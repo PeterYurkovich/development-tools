@@ -9,6 +9,7 @@ import (
 	"github.com/observability-ui/development-tools/internal/constants"
 	"github.com/observability-ui/development-tools/pkg/executor"
 	"github.com/observability-ui/development-tools/pkg/k8s"
+	"github.com/observability-ui/development-tools/pkg/resources"
 )
 
 const (
@@ -53,6 +54,38 @@ func UpdateMonitoring(ctx context.Context, kubeClient client.Client, config Upda
 	exec.SendLog(StepUpdatePluginImage, "Image updated successfully")
 	exec.SendUpdate(StepUpdatePluginImage, executor.StatusComplete, stepName)
 
+	return nil
+}
+
+const (
+	StepDeployMonitoringUIPlugin = iota
+)
+
+type DeployMonitoringConfig struct {
+	EnablePerses                bool
+	EnableACM                   bool
+	EnableClusterHealthAnalyzer bool
+}
+
+func DeployMonitoring(ctx context.Context, kubeClient client.Client, config DeployMonitoringConfig, exec *executor.Executor) error {
+	defer exec.Close()
+
+	stepName := "Deploy Monitoring UIPlugin"
+	exec.SendUpdate(StepDeployMonitoringUIPlugin, executor.StatusInProgress, stepName)
+	exec.SendLog(StepDeployMonitoringUIPlugin, fmt.Sprintf("Creating UIPlugin %s", constants.MonitoringUIPluginName))
+
+	pluginConfig := resources.MonitoringUIPluginConfig{
+		EnablePerses:                config.EnablePerses,
+		EnableACM:                   config.EnableACM,
+		EnableClusterHealthAnalyzer: config.EnableClusterHealthAnalyzer,
+	}
+
+	if err := resources.CreateMonitoringUIPlugin(ctx, kubeClient, pluginConfig); err != nil {
+		exec.SendUpdateWithError(StepDeployMonitoringUIPlugin, executor.StatusFailed, stepName, err)
+		return err
+	}
+
+	exec.SendUpdate(StepDeployMonitoringUIPlugin, executor.StatusComplete, stepName)
 	return nil
 }
 
