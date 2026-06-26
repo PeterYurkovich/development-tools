@@ -426,26 +426,36 @@
     - Note: Covered by monitoring-plugin tasks — not implemented here
 
 ### Deploy Monitoring
-- [ ] **Implement deploy monitoring command**
-  - [ ] Create `cmd/deploy/monitoring.go`
-  - [ ] Deploy monitoring UIPlugin
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy monitoring command**
+  - [x] Create `cmd/deploy/monitoring.go`
+  - [x] Flags: `--enable-perses`, `--enable-acm`, `--enable-cluster-health-analyzer`
+  - [x] CLI and TUI modes with three `huh.NewConfirm()` prompts
+  - Blocked by: Implement deploy command group ✅
 
-  - [ ] **Implement Monitoring UIPlugin deployment**
-    - [ ] Update `pkg/resources/uiplugin.go`
-    - [ ] Add UIPlugin CR for monitoring
-    - Blocked by: Implement deploy monitoring command
+  - [x] **Implement Monitoring UIPlugin deployment**
+    - [x] Update `pkg/resources/uiplugin.go` — `MonitoringUIPluginConfig` + `CreateMonitoringUIPlugin()`
+    - [x] Add `MonitoringUIPluginName`, `ACMAlertmanagerURL`, `ACMThanosQuerierURL` to `internal/constants/monitoring.go`
+    - [x] Append `DeployMonitoringConfig` + `DeployMonitoring()` to `pkg/operations/monitoring.go`
+    - [x] ACM URLs hardcoded from `acm/monitoring-ui.yaml` (no user input required)
+    - Blocked by: Implement deploy monitoring command ✅
 
 ### Deploy ACM
-- [ ] **Implement deploy acm command**
-  - [ ] Create `cmd/deploy/acm.go`
-  - Blocked by: Implement deploy command group
+- [x] **Implement deploy acm command**
+  - [x] Create `cmd/deploy/acm.go`
+  - [x] Flags: `--acm-channel`, `--storage-class`, `--skip-acm-install`, `--skip-multclusterhub`
+  - [x] CLI and TUI modes; TUI form with 4 prompts
+  - Blocked by: Implement deploy command group ✅
+  - Implementation: [tasks/deploy-acm/plan.md](./tasks/deploy-acm/plan.md)
 
-  - [ ] **Implement MultiClusterObservability deployment**
-    - [ ] Create `pkg/resources/acm.go`
-    - [ ] Create MultiClusterObservability CR
-    - [ ] Configure with MinIO backend
-    - Blocked by: Implement deploy acm command
+  - [x] **Implement MultiClusterObservability deployment**
+    - [x] Create `pkg/resources/acm.go` — MCH + MCO (unstructured) + WaitForMultiClusterHub
+    - [x] Create `pkg/operators/acm/operatorhub.go` — OG + Subscription
+    - [x] Create `internal/constants/acm.go`
+    - [x] Extend `pkg/storage/provider.go` + `minio.go` with SecretFormatThanos
+    - [x] Create `pkg/operations/acm.go` — 9-step executor (4 conditional on skip flags)
+    - [x] MCO uses typed `mcov1beta2.MultiClusterObservability` — resolved `imdario/mergo` rename via `replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16` (same fix MCO uses in its own go.mod)
+    - [x] MCH uses `unstructured.Unstructured` — no importable typed module exists without path conflicts; upstream MCO itself uses unstructured for MCH
+    - Blocked by: Implement deploy acm command ✅
 
 ### Deploy Korrel8r
 - [ ] **Implement deploy korrel8r command**

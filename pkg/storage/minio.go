@@ -57,6 +57,9 @@ func (m *MinioProvider) GetType() StorageType {
 }
 
 func (m *MinioProvider) GetSecretName() string {
+	if m.config.SecretFormat == SecretFormatThanos {
+		return "thanos-object-storage"
+	}
 	return m.config.BucketName + "-object-storage"
 }
 
@@ -285,6 +288,22 @@ func (m *MinioProvider) buildPVC() *corev1.PersistentVolumeClaim {
 func (m *MinioProvider) buildDeployment() *appsv1.Deployment {
 	replicas := int32(1)
 
+	image := DefaultMinioImage
+	envVars := []corev1.EnvVar{
+		{Name: "MINIO_ROOT_USER", Value: DefaultAccessKey},
+		{Name: "MINIO_ROOT_PASSWORD", Value: DefaultSecretKey},
+	}
+	command := fmt.Sprintf("mkdir -p /storage/%s && minio server /storage", m.config.BucketName)
+
+	if m.config.SecretFormat == SecretFormatThanos {
+		image = "quay.io/minio/minio:RELEASE.2021-08-25T00-41-18Z"
+		envVars = []corev1.EnvVar{
+			{Name: "MINIO_ACCESS_KEY", Value: DefaultAccessKey},
+			{Name: "MINIO_SECRET_KEY", Value: DefaultSecretKey},
+		}
+		command = fmt.Sprintf("mkdir -p /storage/%s && /usr/bin/minio server /storage", m.config.BucketName)
+	}
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "minio",
@@ -312,23 +331,10 @@ func (m *MinioProvider) buildDeployment() *appsv1.Deployment {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "minio",
-							Image: DefaultMinioImage,
-							Command: []string{
-								"/bin/sh",
-								"-c",
-								fmt.Sprintf("mkdir -p /storage/%s && minio server /storage", m.config.BucketName),
-							},
-							Env: []corev1.EnvVar{
-								{
-									Name:  "MINIO_ROOT_USER",
-									Value: DefaultAccessKey,
-								},
-								{
-									Name:  "MINIO_ROOT_PASSWORD",
-									Value: DefaultSecretKey,
-								},
-							},
+							Name:    "minio",
+							Image:   image,
+							Command: []string{"/bin/sh", "-c", command},
+							Env:     envVars,
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: MinioPort,
@@ -385,11 +391,26 @@ func (m *MinioProvider) buildService() *corev1.Service {
 }
 
 func (m *MinioProvider) buildSecret() *corev1.Secret {
-	secretData := map[string][]byte{
-		"access_key_id":     []byte(DefaultAccessKey),
-		"access_key_secret": []byte(DefaultSecretKey),
-		"bucketname":        []byte(m.config.BucketName),
-		"endpoint":          []byte(m.GetEndpoint()),
+	if m.config.SecretFormat == SecretFormatThanos {
+		thanosYAML := fmt.Sprintf(`type: s3
+config:
+  bucket: "%s"
+  endpoint: "minio:9000"
+  insecure: true
+  access_key: "%s"
+  secret_key: "%s"
+`, m.config.BucketName, DefaultAccessKey, DefaultSecretKey)
+
+		return &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      m.GetSecretName(),
+				Namespace: m.config.Namespace,
+			},
+			Data: map[string][]byte{
+				"thanos.yaml": []byte(thanosYAML),
+			},
+			Type: corev1.SecretTypeOpaque,
+		}
 	}
 
 	return &corev1.Secret{
@@ -397,7 +418,12 @@ func (m *MinioProvider) buildSecret() *corev1.Secret {
 			Name:      m.GetSecretName(),
 			Namespace: m.config.Namespace,
 		},
-		Data: secretData,
+		Data: map[string][]byte{
+			"access_key_id":     []byte(DefaultAccessKey),
+			"access_key_secret": []byte(DefaultSecretKey),
+			"bucketname":        []byte(m.config.BucketName),
+			"endpoint":          []byte(m.GetEndpoint()),
+		},
 		Type: corev1.SecretTypeOpaque,
 	}
 }
