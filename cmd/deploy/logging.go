@@ -25,18 +25,29 @@ Installs:
   - cluster-logging operator in openshift-logging namespace
   - loki-operator in openshift-operators-redhat namespace
 
+Optional components (enabled via flags or TUI):
+  - MinIO storage for LokiStack backend
+  - LokiStack CR (requires MinIO)
+  - Collector RBAC + ClusterLogForwarder (requires LokiStack)
+  - Logging UIPlugin
+  - Chat signal generator app in the 'chat' namespace
+
 Both operators are installed from the redhat-operators catalog source.`,
-	Example: `  # Deploy with default channels
+	Example: `  # Deploy operators only (interactive TUI for optional components)
   obstool deploy logging
 
   # Deploy with specific channels
-  obstool deploy logging --logging-channel=stable --loki-channel=stable-6.1`,
+  obstool deploy logging --logging-channel=stable --loki-channel=stable-6.1
+
+  # Deploy with chat signal generator
+  obstool deploy logging --deploy-signals`,
 	RunE: runDeployLogging,
 }
 
 func init() {
 	loggingCmd.Flags().String("logging-channel", "stable", "Cluster Logging subscription channel")
 	loggingCmd.Flags().String("loki-channel", "stable", "Loki Operator subscription channel")
+	loggingCmd.Flags().Bool("deploy-signals", false, "Deploy chat log generator app in the 'chat' namespace")
 
 	DeployCmd.AddCommand(loggingCmd)
 }
@@ -57,10 +68,12 @@ func runDeployLogging(cmd *cobra.Command, args []string) error {
 func runDeployLoggingCLI(cmd *cobra.Command) error {
 	loggingChannel, _ := cmd.Flags().GetString("logging-channel")
 	lokiChannel, _ := cmd.Flags().GetString("loki-channel")
+	deploySignals, _ := cmd.Flags().GetBool("deploy-signals")
 
 	config := operations.DeployLoggingConfig{
 		LoggingChannel: loggingChannel,
 		LokiChannel:    lokiChannel,
+		DeploySignals:  deploySignals,
 	}
 
 	ctx := cmd.Context()
@@ -94,26 +107,12 @@ func runDeployLoggingTUI(cmd *cobra.Command) error {
 		return err
 	}
 
-	loggingChannel, lokiChannel, err := collectLoggingInput(cmd)
+	config, err := collectLoggingInput(cmd)
 	if err != nil {
 		return err
 	}
 
-	config := operations.DeployLoggingConfig{
-		LoggingChannel: loggingChannel,
-		LokiChannel:    lokiChannel,
-	}
-
-	operationsList := []string{
-		fmt.Sprintf("Create namespace %s", constants.LoggingNamespace),
-		"Create OperatorGroup",
-		"Create Subscription for cluster-logging",
-		fmt.Sprintf("Create namespace %s", constants.LokiNamespace),
-		"Create Loki OperatorGroup",
-		"Create Subscription for loki-operator",
-		"Wait for cluster-logging operator to be ready",
-		"Wait for loki-operator to be ready",
-	}
+	operationsList := buildLoggingOperationsList(config)
 
 	model := tui.NewProgressModel("Deploying Cluster Logging and Loki Operators", operationsList)
 	program := tea.NewProgram(model)
@@ -141,23 +140,19 @@ func runDeployLoggingTUI(cmd *cobra.Command) error {
 		return err
 	}
 
-	m := finalModel.(tui.ProgressModel)
-	if m.Error() != nil {
-		return m.Error()
+	progressModel := finalModel.(tui.ProgressModel)
+	if progressModel.Error() != nil {
+		return progressModel.Error()
 	}
 
 	return nil
 }
 
-func collectLoggingInput(cmd *cobra.Command) (string, string, error) {
+func collectLoggingInput(cmd *cobra.Command) (operations.DeployLoggingConfig, error) {
 	loggingChannel, _ := cmd.Flags().GetString("logging-channel")
 	lokiChannel, _ := cmd.Flags().GetString("loki-channel")
+	deploySignals, _ := cmd.Flags().GetBool("deploy-signals")
 
-	if loggingChannel != "" && lokiChannel != "" {
-		return loggingChannel, lokiChannel, nil
-	}
-
-	// Set defaults if not provided
 	if loggingChannel == "" {
 		loggingChannel = "stable"
 	}
@@ -175,13 +170,64 @@ func collectLoggingInput(cmd *cobra.Command) (string, string, error) {
 				Title("Loki Operator Subscription Channel").
 				Value(&lokiChannel).
 				Placeholder("stable"),
+			huh.NewConfirm().
+				Title("Deploy chat log generator app in the 'chat' namespace?").
+				Value(&deploySignals),
 		),
 	)
 
 	if err := form.Run(); err != nil {
-		return "", "", err
+		return operations.DeployLoggingConfig{}, err
 	}
 
-	return loggingChannel, lokiChannel, nil
+	return operations.DeployLoggingConfig{
+		LoggingChannel: loggingChannel,
+		LokiChannel:    lokiChannel,
+		DeploySignals:  deploySignals,
+	}, nil
 }
 
+func buildLoggingOperationsList(config operations.DeployLoggingConfig) []string {
+	operationsList := []string{
+		fmt.Sprintf("Create namespace %s", constants.LoggingNamespace),
+		"Create OperatorGroup",
+		"Create Subscription for cluster-logging",
+		fmt.Sprintf("Create namespace %s", constants.LokiNamespace),
+		"Create Loki OperatorGroup",
+		"Create Subscription for loki-operator",
+		"Wait for cluster-logging operator to be ready",
+		"Wait for loki-operator to be ready",
+	}
+
+	if config.DeployMinIO {
+		operationsList = append(operationsList, "Deploy MinIO storage")
+	}
+
+	if config.DeployLokiStack {
+		operationsList = append(operationsList,
+			"Deploy LokiStack",
+			"Wait for LokiStack to be ready",
+		)
+	}
+
+	if config.DeployForwarder {
+		operationsList = append(operationsList,
+			"Create collector RBAC",
+			"Deploy ClusterLogForwarder",
+			"Wait for ClusterLogForwarder to be ready",
+		)
+	}
+
+	if config.DeployUIPlugin {
+		operationsList = append(operationsList,
+			"Deploy Logging UIPlugin",
+			"Wait for UIPlugin to be ready",
+		)
+	}
+
+	if config.DeploySignals {
+		operationsList = append(operationsList, "Deploy chat signal app")
+	}
+
+	return operationsList
+}

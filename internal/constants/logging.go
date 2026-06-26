@@ -31,8 +31,13 @@ const (
 	LogCollectorServiceAccount = "logcollector"
 
 	// Logging UIPlugin
-	LoggingUIPluginName        = "logging"
-	LoggingUIPluginLogsLimit   = 50
-	LoggingUIPluginTimeout     = "30s"
-	LoggingUIPluginSchema      = "select"
+	LoggingUIPluginName      = "logging"
+	LoggingUIPluginLogsLimit = 50
+	LoggingUIPluginTimeout   = "30s"
+	LoggingUIPluginSchema    = "select"
+
+	// Logging signal generator
+	ChatNamespace      = "chat"
+	ChatDeploymentName = "chat-x"
+	ChatImage          = "quay.io/libpod/alpine"
 )

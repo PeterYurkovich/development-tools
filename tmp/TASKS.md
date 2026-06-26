@@ -310,13 +310,14 @@
   - [x] Both operators from redhat-operators catalog
   - [x] 8 deployment steps total (4 per operator)
 
-- [ ] **Deploy logging signal generator (chat app)**
-  - [ ] Create `cmd/deploy/signals-logging.go` or add to logging.go
-  - [ ] Deploy chat namespace
-  - [ ] Deploy chat pod with log generation
-  - [ ] Container runs: `while true; do echo "$(date) chat says hello - $i"; i=$((i + 1)); sleep 1; done`
-  - [ ] Add security context (runAsNonRoot, drop ALL caps, seccomp RuntimeDefault)
-  - Blocked by: Deploy logging command
+- [x] **Deploy logging signal generator (chat app)**
+  - [x] Added to logging.go via `--deploy-signals` flag
+  - [x] Deploy chat namespace
+  - [x] Deploy chat Deployment with log generation
+  - [x] Container runs: `while true; do echo "$(date) chat says hello - $i"; i=$((i + 1)); sleep 1; done`
+  - [x] Security context: runAsNonRoot, allowPrivilegeEscalation=false, drop ALL caps, seccomp RuntimeDefault
+  - Blocked by: Deploy logging command ✅
+  - Implementation: [tasks/deploy-logging-signals/implementation.md](./tasks/deploy-logging-signals/implementation.md)
 
 - [x] **Implement MinIO deployment for logging**
   - [x] Create `pkg/resources/minio.go`
@@ -541,6 +542,34 @@
   - [ ] Build for multiple platforms
   - [ ] Distribution method
   - Blocked by: Set up Makefile
+
+---
+
+## Code Quality
+
+### Executor Error Handling Audit
+- [ ] **Audit all multi-step functions for correct executor error calls**
+  - [ ] Verify every `if err != nil` branch inside an executor function calls `exec.SendUpdateWithError` (not plain `exec.SendUpdate` with `StatusFailed`)
+  - [ ] Files to audit (all files using `executor.Executor`):
+    - [ ] `pkg/operations/monitoring.go`
+    - [ ] `pkg/operations/logging.go`
+    - [ ] `pkg/operations/tracing.go`
+    - [ ] `pkg/operations/coo.go`
+    - [ ] `pkg/operations/cleanup_coo.go`
+    - [ ] `pkg/operations/cleanup_logging.go`
+    - [ ] `pkg/operators/coo/bundle.go`
+    - [ ] `pkg/operators/coo/fbc.go`
+    - [ ] `pkg/operators/coo/stage.go`
+    - [ ] `pkg/operators/coo/operatorhub.go`
+    - [ ] `pkg/operators/logging/operatorhub.go`
+    - [ ] `pkg/operators/loki/operatorhub.go`
+    - [ ] `pkg/operators/tempo/operatorhub.go`
+    - [ ] `pkg/operators/otel/operatorhub.go`
+    - [ ] `pkg/storage/minio.go`
+  - [ ] Fix any instance where `exec.SendUpdate(step, executor.StatusFailed, name)` is used without passing the error — replace with `exec.SendUpdateWithError(step, executor.StatusFailed, name, err)`
+  - [ ] Ensure no error is silently swallowed before being sent to the executor
+  - Blocked by: None (can implement anytime)
+  - Note: `SendUpdateWithError` attaches the error to the `ProgressUpdate` struct so it propagates to both CLI and TUI handlers correctly
 
 ---
 

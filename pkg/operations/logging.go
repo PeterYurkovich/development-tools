@@ -34,6 +34,7 @@ const (
 	StepWaitForClusterLogForwarder
 	StepDeployUIPlugin
 	StepWaitForUIPlugin
+	StepDeploySignalApps
 )
 
 type DeployLoggingConfig struct {
@@ -44,6 +45,7 @@ type DeployLoggingConfig struct {
 	DeployLokiStack  bool
 	DeployForwarder  bool
 	DeployUIPlugin   bool
+	DeploySignals    bool
 }
 
 func DeployLogging(ctx context.Context, kubeClient client.Client,
@@ -307,6 +309,19 @@ func DeployLogging(ctx context.Context, kubeClient client.Client,
 		// UIPlugin is reconciled by COO, which should already be deployed
 		// For now, just mark complete
 		exec.SendUpdate(StepWaitForUIPlugin, executor.StatusComplete, stepName)
+	}
+
+	if config.DeploySignals {
+		stepName = "Deploy chat signal app"
+		exec.SendUpdate(StepDeploySignalApps, executor.StatusInProgress, stepName)
+		exec.SendLog(StepDeploySignalApps, "Creating chat Deployment in namespace 'chat'")
+
+		if err := resources.CreateChatApp(ctx, kubeClient); err != nil {
+			exec.SendLog(StepDeploySignalApps, fmt.Sprintf("Warning: failed to deploy chat app: %v", err))
+		} else {
+			exec.SendLog(StepDeploySignalApps, "Chat app deployed in namespace 'chat'")
+		}
+		exec.SendUpdate(StepDeploySignalApps, executor.StatusComplete, stepName)
 	}
 
 	return nil
