@@ -5,7 +5,7 @@ Reference:<br>
 Note: It is written in my own words and a bit of lack of knowledge in terms of concepts. It is just to give a quick overview and steps to follow in order to perform COO release testing by anyone in the team.
 
 ## Installation
-Usually, COO release testing phase starts right after the COO RC (feature freeze), when FBC files starts to be provided by [Hongyan Li - @hongyli](https://redhat.enterprise.slack.com/archives/D08E0L91YHF) in [#coo-productization channel](https://redhat.enterprise.slack.com/archives/C063J3F88MV).
+Usually, COO release testing phase starts right after the COO RC (feature freeze), when FBC files starts to be provided by in [#coo-productization channel](https://redhat.enterprise.slack.com/archives/C063J3F88MV).
 
 When it is stable enough, Stage files starts to be provided as well. In a practical way, the difference between them are IDMS (Image Digest Mirror Set) where images are mirrored to other registries than the official one.
 
@@ -125,24 +125,6 @@ Reference: <br>
 
 A difference between **COO installed from OperatorHub** (meaning a released version) and **development version** is that, when installing from OperatorHub, all resources are created: namespace, catalogSource, operatorGroup, Subscription and when you are installing Bundle, FBC or Stage image you need to create some or all.
 
-- COO installed from OperatorHub<br>
-**openshift-cluster-observability-operator** namespace when created by COO installed from OperatorHub does not contain the label **openshift.io/cluster-monitoring: "true"**, that impacts Incidents functionality. You need to manually add it:
-
-1. Go to Administration > Namespaces
-2. Search for openshift-cluster-observability-operator
-3. Switch to YAML tab
-4. Verify if this label exist: **openshift.io/cluster-monitoring: 'true'**
-5. If not, include it
-6. Save and Reload
-7. Go To Workloads > Deployments
-8. Search for health-analyzer
-9. Click on kebab icon > Restart rollout
-10. Then go back to Observe > Targets and verify **health-analyzer** ServiceMonitor is listed with metrics endpoint
-11. Wait a bit and you will see alerts/incidents in graphs under Observe > Alerting > Incidents tab.
-
-- COO installed via Bundle, FBC or Stage images<br>
-You don't need to do anything, once label will already be added via namespace shell script creation, as well as other resources like operatorGroup, catalogSource, IDMS, Subscription.
-
 #### Perses
 Refereces:<br>
 - [COO1.2.1 - Perses RBAC feature](https://docs.google.com/document/d/16Oq3PmYJN8Nv2ejmvetAOKOy6pZ7Icnwtld2HsVLl0o/edit?usp=sharing)
@@ -172,7 +154,7 @@ Fleet Management perspective will display **Observe** section containing:
 
 **It will not display Incidents tab**, even if Incidents feature is enabled. It is only enabled under Admninistration perspective.
 
-To install ACM you can: 
+To install Virtualization you can: 
 1. run **/development-tools/virtualization/virtualization.sh**
 2. wait the operator to have Succeeded status
 3. run **/development-tools/virtualization/virtualization1.sh**
