@@ -35,9 +35,9 @@ When deploying Monitoring UIPlugin, `monitoring` pod is created. <br>
 
 Monitoring UIPlugin contains “feature flags” that will enable/disable functionalities in the UI:
 - Incidents - it will create a new tab under menu `Observe > Alerting > Incidents`
-- - `health-analyzer` pod
+    - `health-analyzer` pod
 - Perses - it will create a new page under menu `Observe > Dashboards (Perses)`
-- - `perses-0` pod
+    - `perses-0` pod
 - ACM (aka Advanced Cluster Management) - if ACM is installed in the cluster, then a new perspective is enabled: Fleet management. Observe menu will be enabled containing Alerting and Dashboards pages, and in this case, even if Dashboards menu entry does not contain `(Perses)` in the name, it is related to it, and not Grafana.
 
 *Incidents tab is not enabled on*:
@@ -56,11 +56,11 @@ This script also creates a log generator to create data to be shown on Logs page
 
 When it is successfully installed and reconciled, it enables:
 - Under `Core platform` or `Administrator` perspective
-- - `Observe` > `Logs`
+    - `Observe` > `Logs`
 - Under `Developer` perspective
-- - `Workloads > Pods > in a pod > Aggregated Logs` <br>
+    - `Workloads > Pods > in a pod > Aggregated Logs` <br>
 - Under `Workloads > Pods`, change Project `openshift-cluster-observability-operator` namespace
-- - `logging` pod
+    - `logging` pod
 
 *Logs page is not enabled on*:
 - Under `Fleet management` perspective
@@ -78,9 +78,9 @@ This script also creates a log generator to create data to be shown on Traces pa
 
 When it is successfully installed and reconciled, it enables:
 - Under `Core platform` or `Administrator` perspective
-- - `Observe` > `Traces`
+    - `Observe` > `Traces`
 - Under `Workloads > Pods`, change Project `openshift-cluster-observability-operator` namespace
-- - `distributed-tracing` pod
+    - `distributed-tracing` pod
 
 *Traces page is not enabled on*:
 - Under `Developer` perspective
@@ -91,18 +91,18 @@ When it is successfully installed and reconciled, it enables:
 
 It does not depend on any operator to get reconciled, however it integrates to other operators, aka Observability signals and UIPlugins.
 
-This plugin enables you to "correlate" cluster resources to troubleshoot problems, including the integration to:
-- - Logging
-- - Distributed Tracing
-- - Network Observability
+This plugin enables you to "correlate" cluster resources to troubleshoot problems, including the integration to:<br>
+- Logging<br>
+- Distributed Tracing<br>
+- Network Observability<br>
 
 When it is successfully installed and reconciled, it enables:
 - Under `Core platform` or `Administrator` perspective
-- - In masthead, Application switcher icon (9 dots), a `Signal correlation` option, showing a sliding drawer on the right side
-- - `Observe > Alerting > Alerts > click on an alert > Troubleshooting panel link above the metric chart`
+    - In masthead, Application switcher icon (9 dots), a `Signal correlation` option, showing a sliding drawer on the right side
+    - `Observe > Alerting > Alerts > click on an alert > Troubleshooting panel link above the metric chart`
 - Under `Workloads > Pods`, change Project `openshift-cluster-observability-operator` namespace
-- - `korrel8r` pod
-- - `troubleshooting-panel` pod
+    -`korrel8r` pod
+    - `troubleshooting-panel` pod
 
 *These entries are not enabled on*:
 - Under `Developer` perspective
